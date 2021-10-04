@@ -23,6 +23,8 @@ public class JvnCoordImpl
 	 */
 	private static final long serialVersionUID = 1L;
 
+  private int lastId = 0;
+
 /**
   * Default constructor
   * @throws JvnException
@@ -38,8 +40,7 @@ public class JvnCoordImpl
   **/
   public int jvnGetObjectId()
   throws java.rmi.RemoteException,jvn.JvnException {
-    // to be completed 
-    return 0;
+    return this.lastId++;
   }
   
   /**
