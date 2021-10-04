@@ -13,4 +13,28 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                <execution>
+                    <id>coord</id>
+                    <configuration>
+                    <mainClass>jvn.Coord</mainClass>
+                    </configuration>
+                </execution>
+                <execution>
+                    <id>irc</id>
+                    <configuration>
+                    <mainClass>irc.Irc</mainClass>
+                    </configuration>
+                </execution>
+                </executions>
+            </plugin>
+        </plugins> 
+    </build>
+
 </project>
