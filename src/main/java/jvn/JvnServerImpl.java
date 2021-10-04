@@ -9,6 +9,7 @@
 
 package jvn;
 
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 import java.io.*;
@@ -138,8 +139,28 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public JvnObject jvnLookupObject(String jon)
             throws jvn.JvnException {
-        // to be completed
-        return null;
+
+        JvnObject jo = null;
+        boolean coordResponded = false;
+        while(!coordResponded) {
+            try {
+                jo = this.coord.jvnLookupObject(jon, this);
+                coordResponded = true;
+            } catch (RemoteException e) {
+                System.err.println(e.getMessage());
+            }
+
+            if(!coordResponded) {
+                System.out.println("Erreur coordinateur non disponible, nouvelle tentative dans 2s...");
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+
+        return jo;
     }
 
     /**
