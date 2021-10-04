@@ -27,6 +27,8 @@ public class JvnCoordImpl
 
     private Registry registry;
 
+    private int lastId;
+
     /**
      * Default constructor
      *
@@ -51,7 +53,7 @@ public class JvnCoordImpl
     public int jvnGetObjectId()
             throws java.rmi.RemoteException, jvn.JvnException {
         // to be completed
-        return 0;
+        return this.lastId++;
     }
 
     /**
