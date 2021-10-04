@@ -10,7 +10,9 @@
 package jvn;
 
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Hashtable;
 import java.io.*;
+import java.rmi.RemoteException;
 import java.rmi.registry.*;
 
 
@@ -26,6 +28,9 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
     private Registry registry;
 
     private JvnRemoteCoord coord;
+
+	private Hashtable<String, JvnObject> storeByName = new Hashtable<>();
+	private Hashtable<Integer, JvnObject> storeById = new Hashtable<>();
 
     /**
      * Default constructor
@@ -100,7 +105,28 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public void jvnRegisterObject(String jon, JvnObject jo)
             throws jvn.JvnException {
-        // to be completed
+		boolean response = false;
+				
+		// Attempt to register the object coordinator side until we get a response.
+		while(!response){
+			try {
+				this.coord.jvnRegisterObject(jon, jo, this);
+				this.storeByName.put(jon, jo);
+				this.storeById.put(jo.jvnGetObjectId(), jo);
+				response = true;
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+
+			if(!response){
+				System.out.println("Erreur: coordinateur non disponible, nouvelle tentative dans 2s...");
+				try{
+					Thread.sleep(2000);
+				} catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+			}
+		}
     }
 
     /**
