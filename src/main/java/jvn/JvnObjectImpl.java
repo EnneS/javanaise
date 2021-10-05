@@ -96,4 +96,9 @@ public class JvnObjectImpl implements JvnObject {
     public Lock getLock(){
         return this.lock;
     }
+
+	public JvnObject clone(){
+		JvnObjectImpl clone = new JvnObjectImpl(this.o, this.id);
+		return clone;
+	}
 }

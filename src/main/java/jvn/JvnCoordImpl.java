@@ -76,19 +76,9 @@ public class JvnCoordImpl
         if(storeByName.get(jon) == null){
           storeByName.put(jon, jo);
           storeById.put(jo.jvnGetObjectId(), jo);
+        } else {
+            throw new jvn.JvnException("Object " + jon + " is already registered.");
         }
-        
-        // Get the locks list for this JvnObject
-        List<LockInfo> locks = storeLocks.get(jo.jvnGetObjectId());
-        if(locks == null){
-          // No locks registered for this JvnObject ; add it to the hashmap
-          locks = new ArrayList<LockInfo>();
-          storeLocks.put(jo.jvnGetObjectId(), locks);
-        }
-
-        // Add the lock info to the list
-        locks.add(new LockInfo(js, jo.getLock()));
-
     }
 
     /**
@@ -100,8 +90,24 @@ public class JvnCoordImpl
      **/
     public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
             throws java.rmi.RemoteException, jvn.JvnException {
-        // to be completed
-        return null;
+        JvnObject jo = storeByName.get(jon);
+
+        if(jo != null) {
+            jo = jo.clone();
+
+            // Get the locks list for this JvnObject
+            List<LockInfo> locks = storeLocks.get(jo.jvnGetObjectId());
+            if(locks == null){
+              // No locks registered for this JvnObject ; add it to the hashmap
+              locks = new ArrayList<LockInfo>();
+              storeLocks.put(jo.jvnGetObjectId(), locks);
+            }
+    
+            // Add the lock info to the list
+            locks.add(new LockInfo(js, jo.getLock()));
+        }
+
+        return jo;
     }
 
     /**
