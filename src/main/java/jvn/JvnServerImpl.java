@@ -176,9 +176,29 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public Serializable jvnLockRead(int joi)
             throws JvnException {
-        // to be completed
-        return null;
 
+        Serializable s = true;
+        boolean received = false;
+
+        while(!received) {
+            try {
+                s = this.coord.jvnLockRead(joi, this);
+                received = true;
+            }catch (RemoteException e) {
+                System.err.println(e.getMessage());
+            }
+
+            if(!received) {
+                System.out.println("Erreur: coordinateur non disponible, nouvelle tentative dans 2s...");
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+
+        return s;
     }
 
     /**
@@ -190,8 +210,29 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public Serializable jvnLockWrite(int joi)
             throws JvnException {
-        // to be completed
-        return null;
+
+        Serializable s = true;
+        boolean received = false;
+
+        while(!received) {
+            try {
+                s = this.coord.jvnLockWrite(joi, this);
+                received = true;
+            }catch (RemoteException e) {
+                System.err.println(e.getMessage());
+            }
+
+            if(!received) {
+                System.out.println("Erreur: coordinateur non disponible, nouvelle tentative dans 2s...");
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+
+        return s;
     }
 
 
@@ -205,7 +246,10 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public void jvnInvalidateReader(int joi)
             throws java.rmi.RemoteException, jvn.JvnException {
-        // to be completed
+        JvnObject o = this.storeById.get(joi);
+        if(o != null) {
+            o.jvnInvalidateReader();
+        }
     }
 
     ;
@@ -219,7 +263,10 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public Serializable jvnInvalidateWriter(int joi)
             throws java.rmi.RemoteException, jvn.JvnException {
-        // to be completed
+        JvnObject o = this.storeById.get(joi);
+        if(o != null) {
+            return o.jvnInvalidateWriter();
+        }
         return null;
     }
 
@@ -234,7 +281,10 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public Serializable jvnInvalidateWriterForReader(int joi)
             throws java.rmi.RemoteException, jvn.JvnException {
-        // to be completed
+        JvnObject o = this.storeById.get(joi);
+        if(o != null) {
+            return o.jvnInvalidateWriterForReader();
+        }
         return null;
     }
 
