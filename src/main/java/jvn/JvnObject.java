@@ -85,4 +85,13 @@ public interface JvnObject extends Serializable {
      **/
     public Serializable jvnInvalidateWriterForReader()
             throws jvn.JvnException;
+
+	/**
+	 * Get the JVN object's lock
+	 * 
+	 * @return the current JVN object's lock
+	 * @throws JvnException
+	 **/
+	public Lock getLock()
+			throws jvn.JvnException;
 }
