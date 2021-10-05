@@ -97,7 +97,12 @@ public class JvnObjectImpl implements JvnObject {
     }
 
 	public JvnObject clone(){
-		JvnObjectImpl clone = new JvnObjectImpl(this.o, this.id);
+		JvnObjectImpl clone = new JvnObjectImpl(this.o);
+		try {
+			clone.id = this.jvnGetObjectId();
+		} catch (JvnException e) {
+			e.printStackTrace();
+		}
 		return clone;
 	}
 }

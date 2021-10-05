@@ -58,7 +58,6 @@ public class JvnCoordImpl
      **/
     public int jvnGetObjectId()
             throws java.rmi.RemoteException, jvn.JvnException {
-        // to be completed
         return this.lastId++;
     }
 
@@ -101,10 +100,11 @@ public class JvnCoordImpl
               // No locks registered for this JvnObject ; add it to the hashmap
               locks = new ArrayList<LockInfo>();
               storeLocks.put(jo.jvnGetObjectId(), locks);
+
+              // Add the lock info to the list
+              locks.add(new LockInfo(js, jo.getLock()));
             }
     
-            // Add the lock info to the list
-            locks.add(new LockInfo(js, jo.getLock()));
         }
 
         return jo;
