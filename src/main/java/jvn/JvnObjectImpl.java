@@ -11,10 +11,9 @@ public class JvnObjectImpl implements JvnObject {
     private int id;
 
     /* JvnObject Constructor */
-    public JvnObjectImpl(Serializable o, int id){
+    public JvnObjectImpl(Serializable o){
         this.o = o;
         this.lock = Lock.NL;
-        this.id = id;
     }
 
 	/**

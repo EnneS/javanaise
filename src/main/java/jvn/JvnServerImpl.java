@@ -88,8 +88,12 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public JvnObject jvnCreateObject(Serializable o)
             throws jvn.JvnException {
-        // to be completed
-        return null;
+
+        JvnObject obj = new JvnObjectImpl(o);
+
+        obj.jvnLockWrite();
+
+        return obj;
     }
 
     /**
@@ -125,7 +129,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
             }
 
             if(!coordResponded) {
-                System.out.println("Erreur coordinateur non disponible, nouvelle tentative dans 2s...");
+                System.out.println("Erreur: coordinateur non disponible, nouvelle tentative dans 2s...");
                 try {
                     Thread.sleep(2000);
                 } catch (Exception e) {
