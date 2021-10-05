@@ -51,6 +51,15 @@ public class JvnObjectImpl implements JvnObject {
 	throws jvn.JvnException {
         return this.id;
     }
+
+	/**
+	* Set the object identification
+	* @throws JvnException
+	**/
+	public void jvnSetObjectId(int id)
+	throws jvn.JvnException {
+        this.id = id;
+    }
 	
 	/**
 	* Get the shared object associated to this JvnObject

@@ -74,6 +74,7 @@ public class JvnCoordImpl
         // Add the JvnObject to the store if it doesn't already exist
         if(storeByName.get(jon) == null){
           storeByName.put(jon, jo);
+          jo.jvnSetObjectId(this.jvnGetObjectId());
           storeById.put(jo.jvnGetObjectId(), jo);
         } else {
             throw new jvn.JvnException("Object " + jon + " is already registered.");
