@@ -106,6 +106,19 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         return jo;
     }
 
+    private JvnRemoteServer getJsWithLock(int joi) {
+        List<LockInfo> locks = storeLocks.get(joi);
+        JvnRemoteServer jsWithLock = null;
+
+        for (LockInfo lockInfo : locks) {
+            if (lockInfo.getLock() == Lock.W) {
+                jsWithLock = lockInfo.getJvnRemoteServer();
+                break;
+            }
+        }
+        return jsWithLock;
+    }
+
     /**
      * Get a Read lock on a JVN object managed by a given JVN server
      *
@@ -116,23 +129,14 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      **/
     public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
+
         List<LockInfo> locks = storeLocks.get(joi);
-        // Look for a server with a write lock on the object
         JvnRemoteServer jsWithLock = null;
         Serializable s = null;
-        for (LockInfo lockInfo : locks) {
-            if (lockInfo.getLock() == Lock.W) {
-                jsWithLock = lockInfo.getJvnRemoteServer();
-                break;
-            }
-        }
 
         try {
-            // If we found a server with a write lock
-            while (jsWithLock != null) {
-                // Ask server for write lock Invalidation
+            while ((jsWithLock = getJsWithLock(joi)) != null) {
                 s = jsWithLock.jvnInvalidateWriterForReader(joi);
-                // Wait for it to unlock the object and notify us
                 wait();
             }
         } catch (InterruptedException e) {
