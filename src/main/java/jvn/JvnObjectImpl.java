@@ -10,13 +10,10 @@ public class JvnObjectImpl implements JvnObject {
 
 	private int id;
 
-	private JvnLocalServer js;
-
 	/* JvnObject Constructor */
-	public JvnObjectImpl(Serializable o, JvnLocalServer js) {
+	public JvnObjectImpl(Serializable o) {
 		this.o = o;
 		this.lock = Lock.NL;
-		this.js = js;
 	}
 
 	/**
@@ -25,6 +22,7 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockRead() throws jvn.JvnException {
+		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
 		this.o = js.jvnLockRead(this.jvnGetObjectId());
 		this.lock = this.lock == Lock.WC ? Lock.RWC : Lock.R;
 	}
@@ -119,7 +117,7 @@ public class JvnObjectImpl implements JvnObject {
 	}
 
 	public JvnObject clone() {
-		JvnObjectImpl clone = new JvnObjectImpl(this.o, this.js);
+		JvnObjectImpl clone = new JvnObjectImpl(this.o);
 		try {
 			clone.id = this.jvnGetObjectId();
 		} catch (JvnException e) {
