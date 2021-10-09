@@ -10,10 +10,13 @@ public class JvnObjectImpl implements JvnObject {
 
     private int id;
 
+	private JvnLocalServer js;
+
     /* JvnObject Constructor */
-    public JvnObjectImpl(Serializable o){
+    public JvnObjectImpl(Serializable o, JvnLocalServer js){
         this.o = o;
         this.lock = Lock.NL;
+		this.js = js;
     }
 
 	/**
@@ -22,6 +25,7 @@ public class JvnObjectImpl implements JvnObject {
 	**/
 	public void jvnLockRead()
 	throws jvn.JvnException {
+		this.o = js.jvnLockRead(this.jvnGetObjectId());
         this.lock = this.lock == Lock.WC ? Lock.RWC : Lock.R;
     }
 
@@ -69,6 +73,15 @@ public class JvnObjectImpl implements JvnObject {
 	throws jvn.JvnException {
         return this.o;
     }
+
+	/**
+	* Set the shared object associated to this JvnObject
+	* @throws JvnException
+	**/
+	public void jvnSetSharedObject(Serializable o)
+	throws jvn.JvnException {
+        this.o = o;
+    }
 	
 	/**
 	* Invalidate the Read lock of the JVN object 
@@ -106,7 +119,7 @@ public class JvnObjectImpl implements JvnObject {
     }
 
 	public JvnObject clone(){
-		JvnObjectImpl clone = new JvnObjectImpl(this.o);
+		JvnObjectImpl clone = new JvnObjectImpl(this.o, this.js);
 		try {
 			clone.id = this.jvnGetObjectId();
 		} catch (JvnException e) {

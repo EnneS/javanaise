@@ -94,7 +94,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
     public JvnObject jvnCreateObject(Serializable o)
             throws jvn.JvnException {
 
-        JvnObject obj = new JvnObjectImpl(o);
+        JvnObject obj = new JvnObjectImpl(o, this);
 
         obj.jvnLockWrite();
 
@@ -115,7 +115,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 		// Attempt to register the object coordinator side until we get a response.
 		while(!response){
 			try {
-				this.coord.jvnRegisterObject(jon, jo, this);
+                this.coord.jvnRegisterObject(jon, jo, this);
 				this.storeByName.put(jon, jo);
 				this.storeById.put(jo.jvnGetObjectId(), jo);
 				response = true;
@@ -252,8 +252,6 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
         }
     }
 
-    ;
-
     /**
      * Invalidate the Write lock of the JVN object identified by id
      *
@@ -287,8 +285,6 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
         }
         return null;
     }
-
-    ;
 
 }
 

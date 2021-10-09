@@ -16,4 +16,8 @@ public class LockInfo {
     public void setLock(Lock lock){
         this.lock = lock;
     }
+
+    public JvnRemoteServer getJvnRemoteServer(){
+        return js;
+    }
 }

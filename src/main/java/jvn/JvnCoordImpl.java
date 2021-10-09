@@ -121,8 +121,52 @@ public class JvnCoordImpl
      **/
     public Serializable jvnLockRead(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
-        // to be completed
-        return null;
+        List<LockInfo> locks = storeLocks.get(joi);
+        // Look for a server with a write lock on the object
+        JvnRemoteServer jsWithLock = null;
+        do {
+            for (LockInfo lockInfo : locks) {
+                if(lockInfo.getLock() == Lock.W) {
+                    jsWithLock = lockInfo.getJvnRemoteServer();
+                    break;
+                }
+            }
+
+            // Found a server with a lock
+            if(jsWithLock != null){
+                try {
+                    // Wait for it to unlock the object
+                    wait();
+
+                    // Ici je crois qu'il faut mettre la suite du code dans un bloc séparé (si notifyAll alors tous les threads vont se réveiller et invalidate donc pas bon)
+                    // mais pour l'instant balec ; c'est juste pour tester
+                    Serializable s = jsWithLock.jvnInvalidateWriterForReader(joi);
+                    
+                    // Update LockInfo for the server asking for a read lock
+                    Boolean found = null;
+                    for (LockInfo lockInfo : locks) {
+                        if(lockInfo.getJvnRemoteServer() == js){
+                            found = true;
+                            lockInfo.setLock(Lock.R);
+                        }
+                    }
+                    // Si pas de lockInfo dans la liste on en créé un
+                    if(!found){
+                        locks.add(new LockInfo(js, Lock.R));
+                    }
+
+                    // On met à jour l'objet dans le store
+                    // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche sans pour l'instant à priori)
+                    JvnObject o = storeById.get(joi);
+                    o.jvnSetSharedObject(s);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        } while(jsWithLock != null);
+
+        // Renvoyer l'objet courant
+        return storeById.get(joi).jvnGetSharedObject();
     }
 
     /**
@@ -135,8 +179,40 @@ public class JvnCoordImpl
      **/
     public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
-        // to be completed
-        return null;
+        List<LockInfo> locks = storeLocks.get(joi);
+        // Look for a server with a write lock on the object
+        JvnRemoteServer jsWithLock = null;
+        do {
+            for (LockInfo lockInfo : locks) {
+                if(lockInfo.getLock() == Lock.W) {
+                    jsWithLock = lockInfo.getJvnRemoteServer();
+                    break;
+                }
+            }
+
+            if(jsWithLock != null){
+                try {
+                    wait();
+                    jsWithLock.jvnInvalidateWriter(joi);
+
+                    // Update LockInfo for the server asking for a read lock
+                    Boolean found = null;
+                    for (LockInfo lockInfo : locks) {
+                        if(lockInfo.getJvnRemoteServer() == js){
+                            found = true;
+                            lockInfo.setLock(Lock.W);
+                        }
+                    }
+                    if(!found){
+                        locks.add(new LockInfo(js, Lock.W));
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        } while(jsWithLock != null);
+
+        return storeById.get(joi).jvnGetSharedObject();
     }
 
     /**
