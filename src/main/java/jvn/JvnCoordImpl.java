@@ -110,12 +110,15 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         List<LockInfo> locks = storeLocks.get(joi);
         JvnRemoteServer jsWithLock = null;
 
-        for (LockInfo lockInfo : locks) {
-            if (lockInfo.getLock() == Lock.W) {
-                jsWithLock = lockInfo.getJvnRemoteServer();
-                break;
+        if (locks != null) {
+            for (LockInfo lockInfo : locks) {
+                if (lockInfo.getLock() == Lock.W) {
+                    jsWithLock = lockInfo.getJvnRemoteServer();
+                    break;
+                }
             }
         }
+
         return jsWithLock;
     }
 
@@ -123,14 +126,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * Get a Read lock on a JVN object managed by a given JVN server
      *
      * @param joi : the JVN object identification
-     * @param js  : the remote reference of the server
+     * @param js : the remote reference of the server
      * @return the current JVN object state
      * @throws java.rmi.RemoteException, JvnException
      **/
     public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
 
-        List<LockInfo> locks = storeLocks.get(joi);
         JvnRemoteServer jsWithLock = null;
         Serializable s = null;
 
@@ -144,16 +146,26 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         }
 
         // Update LockInfo for the server asking for a read lock
-        Boolean found = null;
-        for (LockInfo lockInfo : locks) {
-            if (lockInfo.getJvnRemoteServer() == js) {
-                found = true;
-                lockInfo.setLock(Lock.R);
+        List<LockInfo> locks = storeLocks.get(joi);
+        Boolean found = false;
+        if (locks != null) {
+            for (LockInfo lockInfo : locks) {
+                if (lockInfo.getJvnRemoteServer() == js) {
+                    found = true;
+                    lockInfo.setLock(Lock.R);
+                }
             }
-        }
-        // Si pas de lockInfo dans la liste on en créé un
-        if (!found) {
+
+            // Si pas de lockInfo dans la liste on en créé un
+            if (!found) {
+                locks.add(new LockInfo(js, Lock.R));
+            }
+        } else {
+            // if lock list was null for joi create a new list containing the
+            // newly acquired readlock
+            locks = new ArrayList<LockInfo>();
             locks.add(new LockInfo(js, Lock.R));
+            storeLocks.put(joi, locks);
         }
 
         // On met à jour l'objet qui possèdait le lock write dans le store
