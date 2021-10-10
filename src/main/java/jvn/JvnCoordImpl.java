@@ -104,7 +104,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         return jo;
     }
 
-    private JvnRemoteServer getJsWithLock(int joi) {
+    private JvnRemoteServer getJsWithWriteLock(int joi) {
         List<LockInfo> locks = storeLocks.get(joi);
         JvnRemoteServer jsWithLock = null;
 
@@ -118,6 +118,22 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         }
 
         return jsWithLock;
+    }
+
+    private List<JvnRemoteServer> getJsWithReadLock(int joi) {
+        List<LockInfo> locks = storeLocks.get(joi);
+        List<JvnRemoteServer> jsWithReadLock = new ArrayList<JvnRemoteServer>();
+
+        if (locks != null) {
+            for (LockInfo lockInfo : locks) {
+                if (lockInfo.getLock() == Lock.R) {
+                    jsWithReadLock.add(lockInfo.getJvnRemoteServer());
+                    break;
+                }
+            }
+        }
+
+        return jsWithReadLock;
     }
 
     /**
@@ -135,13 +151,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         Serializable s = null;
 
         // If no server has a write lock on the object
-        if ((jsWithLock = getJsWithLock(joi)) == null) {
+        if ((jsWithLock = getJsWithWriteLock(joi)) == null) {
             // The server asking for the lock take it immediately.
             s = storeById.get(joi).jvnGetSharedObject();
         } else {
             // Acquire the lock
             try {
-                while ((jsWithLock = getJsWithLock(joi)) != null) {
+                while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
                     s = jsWithLock.jvnInvalidateWriterForReader(joi);
                     wait();
                 }
@@ -193,43 +209,64 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      **/
     public synchronized Serializable jvnLockWrite(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
-        List<LockInfo> locks = storeLocks.get(joi);
-        // Look for a server with a write lock on the object
+
         JvnRemoteServer jsWithLock = null;
+        List<JvnRemoteServer> jsWithReadLock = null;
+        Serializable s = null;
 
-        for (LockInfo lockInfo : locks) {
-            if (lockInfo.getLock() == Lock.W) {
-                jsWithLock = lockInfo.getJvnRemoteServer();
-                break;
+        // If no server has a write lock on the object
+        if ((jsWithLock = getJsWithWriteLock(joi)) == null) {
+            // The server asking for the lock take it immediately.
+            s = storeById.get(joi).jvnGetSharedObject();
+        } else {
+            // Acquire the lock
+            try {
+                while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
+                    s = jsWithLock.jvnInvalidateWriter(joi);
+                    wait();
+                }
+
+                while (!(jsWithReadLock = getJsWithReadLock(joi)).isEmpty()) {
+                    // invalidate readers one by one
+                    jsWithReadLock.get(0).jvnInvalidateReader(joi);
+                    wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-
-        try {
-            // If we found a server with a write lock
-            while (jsWithLock != null) {
-                // Ask the server for write lock invalidation
-                jsWithLock.jvnInvalidateWriter(joi);
-                // Wait for the server to release the lock and notify us.
-                wait();
+        List<LockInfo> locks = storeLocks.get(joi);
+        Boolean found = false;
+        // Update LockInfo for the server asking for the new write lock
+        if (locks != null) {
+            for (LockInfo lockInfo : locks) {
+                if (lockInfo.getJvnRemoteServer() == js) {
+                    found = true;
+                    lockInfo.setLock(Lock.W);
+                }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
-        // Update LockInfo for the server asking for the write lock
-        Boolean found = null;
-        for (LockInfo lockInfo : locks) {
-            if (lockInfo.getJvnRemoteServer() == js) {
-                found = true;
-                lockInfo.setLock(Lock.W);
+            // Si pas de lockInfo dans la liste on en créé un
+            if (!found) {
+                locks.add(new LockInfo(js, Lock.W));
             }
-        }
-        // If no lockInfo present already create one
-        if (!found) {
+        } else {
+            // if lock list was null for joi create a new list containing the
+            // newly acquired readlock
+            locks = new ArrayList<LockInfo>();
             locks.add(new LockInfo(js, Lock.W));
+            storeLocks.put(joi, locks);
         }
 
+        // On met à jour l'objet qui possèdait le lock write dans le store
+        // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
+        // sans pour l'instant à priori)
+        JvnObject o = storeById.get(joi);
+        o.jvnSetSharedObject(s);
+
+        // Renvoyer l'objet courant
         return storeById.get(joi).jvnGetSharedObject();
+
     }
 
     /**
