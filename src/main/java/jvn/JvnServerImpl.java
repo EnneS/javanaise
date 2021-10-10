@@ -171,7 +171,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      **/
     public Serializable jvnLockRead(int joi) throws JvnException {
 
-        Serializable s = true;
+        Serializable s = null;
         boolean received = false;
 
         while (!received) {
