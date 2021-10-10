@@ -134,15 +134,21 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         JvnRemoteServer jsWithLock = null;
         Serializable s = null;
 
-        try {
-            while ((jsWithLock = getJsWithLock(joi)) != null) {
-                s = jsWithLock.jvnInvalidateWriterForReader(joi);
-                wait();
+        // If no server has a write lock on the object
+        if ((jsWithLock = getJsWithLock(joi)) == null) {
+            // The server asking for the lock take it immediately.
+            s = storeById.get(joi).jvnGetSharedObject();
+        } else {
+            // Acquire the lock
+            try {
+                while ((jsWithLock = getJsWithLock(joi)) != null) {
+                    s = jsWithLock.jvnInvalidateWriterForReader(joi);
+                    wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-
         // Update LockInfo for the server asking for a read lock
         List<LockInfo> locks = storeLocks.get(joi);
         Boolean found = false;
