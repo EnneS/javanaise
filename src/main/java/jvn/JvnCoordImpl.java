@@ -1,10 +1,8 @@
 /***
- * JAVANAISE Implementation
- * JvnCoordImpl class
- * This class implements the Javanaise central coordinator
- * Contact:  
+ * JAVANAISE Implementation JvnCoordImpl class This class implements the Javanaise central
+ * coordinator Contact:
  *
- * Authors: 
+ * Authors:
  */
 
 package jvn;
@@ -126,7 +124,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * Get a Read lock on a JVN object managed by a given JVN server
      *
      * @param joi : the JVN object identification
-     * @param js : the remote reference of the server
+     * @param js  : the remote reference of the server
      * @return the current JVN object state
      * @throws java.rmi.RemoteException, JvnException
      **/
