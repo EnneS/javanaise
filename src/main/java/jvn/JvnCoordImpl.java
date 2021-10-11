@@ -76,7 +76,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
             // Add the lock info to the list
             locks.add(new LockInfo(js, jo.getLock()));
-
         } else {
             throw new jvn.JvnException("Object " + jon + " is already registered.");
         }

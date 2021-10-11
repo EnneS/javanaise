@@ -21,11 +21,13 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockRead() throws jvn.JvnException {
-		if(this.lock == Lock.RC)
+		if(this.lock == Lock.RC) {
 			this.lock = Lock.R;
-		else if(this.lock == Lock.WC)
+			return;
+		} else if(this.lock == Lock.WC) {
 			this.lock = Lock.RWC;
-		else if (this.lock == Lock.W || this.lock == Lock.R || this.lock == Lock.RWC)
+			return;
+		} else if (this.lock == Lock.W || this.lock == Lock.R || this.lock == Lock.RWC)
 			return;
 
 		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
@@ -38,9 +40,10 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockWrite() throws jvn.JvnException {
-		if(this.lock == Lock.WC)
+		if(this.lock == Lock.WC) {
 			this.lock = Lock.W;
-		else if (this.lock == Lock.W )
+			return;
+		} else if (this.lock == Lock.W )
 			return;
 
 		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
