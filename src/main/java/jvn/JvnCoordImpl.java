@@ -151,19 +151,19 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             for (LockInfo lockInfo : locks) {
                 if (lockInfo.getJvnRemoteServer() == js) {
                     found = true;
-                    lockInfo.setLock(Lock.R);
+                    lockInfo.setLock(lock);
                 }
             }
 
             // Si pas de lockInfo dans la liste on en créé un
             if (!found) {
-                locks.add(new LockInfo(js, Lock.R));
+                locks.add(new LockInfo(js, lock));
             }
         } else {
             // if lock list was null for joi create a new list containing the
             // newly acquired readlock
             locks = new ArrayList<LockInfo>();
-            locks.add(new LockInfo(js, Lock.R));
+            locks.add(new LockInfo(js, lock));
             storeLocks.put(joi, locks);
         }
     }
@@ -242,6 +242,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // sans pour l'instant à priori)
         JvnObject o = storeById.get(joi);
         o.jvnSetSharedObject(s);
+
+        for (int name: storeLocks.keySet()) {
+            List<LockInfo> value = storeLocks.get(name);
+            for (LockInfo lockInfo : value) {
+                System.out.println(name + " " + lockInfo.getLock());
+            }
+        }
 
         // Renvoyer l'objet courant
         return storeById.get(joi).jvnGetSharedObject();
