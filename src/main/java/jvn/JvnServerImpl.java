@@ -92,8 +92,6 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
     public JvnObject jvnCreateObject(Serializable o) throws jvn.JvnException {
 
         JvnObject obj = new JvnObjectImpl(o);
-
-        //obj.jvnLockWrite();
         obj.setLock(Lock.W);
 
         return obj;

@@ -32,6 +32,7 @@ public class JvnObjectImpl implements JvnObject {
 
 		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
 		this.o = js.jvnLockRead(this.jvnGetObjectId());
+		this.lock = Lock.R;
 	}
 
 	/**
