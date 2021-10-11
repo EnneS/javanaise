@@ -54,7 +54,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
             }
         }
 
-        System.out.println("Coord reçu");
+        System.out.println("Coord reçu - Server Hash : " + this.hashCode());
     }
 
     /**
@@ -143,6 +143,10 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
         while (!coordResponded) {
             try {
                 jo = this.coord.jvnLookupObject(jon, this);
+                if(jo != null){
+                    this.storeByName.put(jon, jo);
+                    this.storeById.put(jo.jvnGetObjectId(), jo);
+                }
                 coordResponded = true;
             } catch (RemoteException e) {
                 System.err.println(e.getMessage());
