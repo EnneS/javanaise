@@ -94,6 +94,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         if (jo != null) {
             jo = jo.clone();
             jo.setLock(Lock.NL);
+        }
+
+        return jo;
     }
 
     private JvnRemoteServer getJsWithWriteLock(int joi) {
