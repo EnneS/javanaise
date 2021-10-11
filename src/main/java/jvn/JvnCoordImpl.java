@@ -144,7 +144,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             for (LockInfo lockInfo : locks) {
                 if (lockInfo.getJvnRemoteServer() == js) {
                     found = true;
-                    lockInfo.setLock(Lock.R);
+                    lockInfo.setLock(lock);
                 }
             }
 
