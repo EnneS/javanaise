@@ -37,6 +37,7 @@ public class Irc {
             JvnObject jo = js.jvnLookupObject("IRC");
 
             if (jo == null) {
+                System.out.println("jo différent null");
                 jo = js.jvnCreateObject((Serializable) new Sentence());
                 // after creation, I have a write lock on the object
                 jo.jvnUnLock();

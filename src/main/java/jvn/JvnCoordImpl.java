@@ -123,7 +123,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             for (LockInfo lockInfo : locks) {
                 if (lockInfo.getLock() == Lock.R) {
                     jsWithReadLock.add(lockInfo.getJvnRemoteServer());
-                    break;
                 }
             }
         }
@@ -214,7 +213,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         while (!(jsWithReadLock = getJsWithReadLock(joi)).isEmpty()) {
             // invalidate readers one by one
             jsWithReadLock.get(0).jvnInvalidateReader(joi);
-            this.updateLockInfo(joi, jsWithReadLock.get(0), Lock.NL);
+            if(jsWithLock != jsWithReadLock.get(0))
+                this.updateLockInfo(joi, jsWithReadLock.get(0), Lock.NL);
             jsWithReadLock.remove(0);
         }
 
