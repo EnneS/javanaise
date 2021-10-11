@@ -33,6 +33,8 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockWrite() throws jvn.JvnException {
+		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
+		this.o = js.jvnLockWrite(this.jvnGetObjectId());
 		this.lock = Lock.W;
 	}
 
