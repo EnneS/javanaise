@@ -10,12 +10,9 @@ public class JvnObjectImpl implements JvnObject {
 
 	private int id;
 
-	private boolean coordRequiresLock = false;
-
 	/* JvnObject Constructor */
 	public JvnObjectImpl(Serializable o) {
 		this.o = o;
-		this.lock = Lock.W;
 	}
 
 	/**
@@ -24,9 +21,15 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockRead() throws jvn.JvnException {
+		if(this.lock == Lock.RC)
+			this.lock = Lock.R;
+		else if(this.lock == Lock.WC)
+			this.lock = Lock.RWC;
+		else if (this.lock == Lock.W || this.lock == Lock.R || this.lock == Lock.RWC)
+			return;
+
 		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
 		this.o = js.jvnLockRead(this.jvnGetObjectId());
-		this.lock = this.lock == Lock.WC ? Lock.RWC : Lock.R;
 	}
 
 	/**
@@ -35,6 +38,11 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockWrite() throws jvn.JvnException {
+		if(this.lock == Lock.WC)
+			this.lock = Lock.W;
+		else if (this.lock == Lock.W )
+			return;
+
 		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
 		this.o = js.jvnLockWrite(this.jvnGetObjectId());
 		this.lock = Lock.W;
@@ -45,15 +53,13 @@ public class JvnObjectImpl implements JvnObject {
 	 * 
 	 * @throws JvnException
 	 **/
-	public void jvnUnLock() throws jvn.JvnException {
+	public synchronized void jvnUnLock() throws jvn.JvnException {
 		if(this.lock == Lock.R)
 			this.lock = Lock.RC;
 		else if(this.lock == Lock.W)
 			this.lock = Lock.WC;
 
-		if(this.coordRequiresLock) {
-			notify();
-		}
+		notify();
 	}
 
 	/**
@@ -107,9 +113,8 @@ public class JvnObjectImpl implements JvnObject {
 	 * @return the current JVN object state
 	 * @throws JvnException
 	 **/
-	public Serializable jvnInvalidateWriter() throws jvn.JvnException {
+	public synchronized Serializable jvnInvalidateWriter() throws jvn.JvnException {
 		if(this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL) {
-			this.coordRequiresLock = true;
 			try {
 				wait();
 			}catch (Exception e) {
@@ -126,7 +131,14 @@ public class JvnObjectImpl implements JvnObject {
 	 * @return the current JVN object state
 	 * @throws JvnException
 	 **/
-	public Serializable jvnInvalidateWriterForReader() throws jvn.JvnException {
+	public synchronized Serializable jvnInvalidateWriterForReader() throws jvn.JvnException {
+		if(this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL) {
+			try {
+				wait();
+			}catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
 		this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
 		return this.o;
 	}

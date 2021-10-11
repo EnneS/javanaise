@@ -182,13 +182,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         JvnRemoteServer jsWithLock = null;
         Serializable s = null;
 
-        try {
-            while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
-                s = jsWithLock.jvnInvalidateWriterForReader(joi);
-                wait();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
+            s = jsWithLock.jvnInvalidateWriterForReader(joi);
         }
 
         updateLockInfo(joi, js, Lock.R);
@@ -219,20 +214,16 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         List<JvnRemoteServer> jsWithReadLock = null;
         Serializable s = null;
 
-        // If no server has a write lock on the object
-        if ((jsWithLock = getJsWithWriteLock(joi)) == null) {
-            // The server asking for the lock take it immediately.
-            s = storeById.get(joi).jvnGetSharedObject();
-        } else {
-            // Acquire the lock
 
-            jsWithLock = getJsWithWriteLock(joi);
+        // Acquire the lock
+
+        jsWithLock = getJsWithWriteLock(joi);
+        if(jsWithLock != null)
             s = jsWithLock.jvnInvalidateWriter(joi);
 
-            while (!(jsWithReadLock = getJsWithReadLock(joi)).isEmpty()) {
-                // invalidate readers one by one
-                jsWithReadLock.get(0).jvnInvalidateReader(joi);
-            }
+        while (!(jsWithReadLock = getJsWithReadLock(joi)).isEmpty()) {
+            // invalidate readers one by one
+            jsWithReadLock.get(0).jvnInvalidateReader(joi);
         }
 
         updateLockInfo(joi, js, Lock.W);
@@ -240,14 +231,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // On met à jour l'objet qui possèdait le lock write dans le store
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
         // sans pour l'instant à priori)
-        JvnObject o = storeById.get(joi);
-        o.jvnSetSharedObject(s);
-
-        for (int name: storeLocks.keySet()) {
-            List<LockInfo> value = storeLocks.get(name);
-            for (LockInfo lockInfo : value) {
-                System.out.println(name + " " + lockInfo.getLock());
-            }
+        if(s != null) {
+            JvnObject o = storeById.get(joi);
+            o.jvnSetSharedObject(s);
         }
 
         // Renvoyer l'objet courant
