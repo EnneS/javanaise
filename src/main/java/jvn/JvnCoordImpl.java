@@ -156,7 +156,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             // if lock list was null for joi create a new list containing the
             // newly acquired readlock
             locks = new ArrayList<LockInfo>();
-            locks.add(new LockInfo(js, Lock.R));
+            locks.add(new LockInfo(js, lock));
             storeLocks.put(joi, locks);
         }
     }
