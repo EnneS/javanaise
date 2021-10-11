@@ -41,7 +41,7 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnLockWrite() throws jvn.JvnException {
-		if(this.lock == Lock.WC) {
+		if(this.lock == Lock.WC || this.lock == Lock.RWC) {
 			this.lock = Lock.W;
 			return;
 		} else if (this.lock == Lock.W )

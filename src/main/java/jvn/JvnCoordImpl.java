@@ -105,7 +105,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
         if (locks != null) {
             for (LockInfo lockInfo : locks) {
-                if (lockInfo.getLock() == Lock.W) {
+                
+                if (lockInfo.getLock() == Lock.W || lockInfo.getLock() == Lock.WC) {
                     jsWithLock = lockInfo.getJvnRemoteServer();
                     break;
                 }
@@ -165,6 +166,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      **/
     public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
+        System.out.println(js.hashCode() + " wants to acquire lock read on " + joi);
 
         JvnRemoteServer jsWithLock = null;
         Serializable s = null;
@@ -172,6 +174,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
             s = jsWithLock.jvnInvalidateWriterForReader(joi);
             this.updateLockInfo(joi, jsWithLock, Lock.NL);
+            System.out.println(jsWithLock.hashCode());
         }
 
         updateLockInfo(joi, js, Lock.R);
@@ -197,13 +200,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      **/
     public synchronized Serializable jvnLockWrite(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
+        System.out.println(js.hashCode() + " wants to acquire lock write on " + joi);
 
         JvnRemoteServer jsWithLock = null;
         List<JvnRemoteServer> jsWithReadLock = null;
         Serializable s = null;
 
         // Acquire the lock
-
         jsWithLock = getJsWithWriteLock(joi);
         if(jsWithLock != null) {
             s = jsWithLock.jvnInvalidateWriter(joi);
