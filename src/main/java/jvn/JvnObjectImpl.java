@@ -10,6 +10,8 @@ public class JvnObjectImpl implements JvnObject {
 
 	private int id;
 
+	private boolean coordRequiresLock = false;
+
 	/* JvnObject Constructor */
 	public JvnObjectImpl(Serializable o) {
 		this.o = o;
@@ -44,7 +46,14 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnUnLock() throws jvn.JvnException {
-		this.lock = Lock.NL;
+		if(this.lock == Lock.R)
+			this.lock = Lock.RC;
+		else if(this.lock == Lock.W)
+			this.lock = Lock.WC;
+
+		if(this.coordRequiresLock) {
+			notify();
+		}
 	}
 
 	/**
@@ -99,8 +108,16 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public Serializable jvnInvalidateWriter() throws jvn.JvnException {
+		if(this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL) {
+			this.coordRequiresLock = true;
+			try {
+				wait();
+			}catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
 		this.lock = Lock.NL;
-		return this.o;
+		return o;
 	}
 
 	/**
@@ -126,5 +143,9 @@ public class JvnObjectImpl implements JvnObject {
 			e.printStackTrace();
 		}
 		return clone;
+	}
+
+	public void setLock(Lock lock) {
+		this.lock = lock;
 	}
 }

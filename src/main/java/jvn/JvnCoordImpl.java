@@ -70,6 +70,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             storeByName.put(jon, jo);
             jo.jvnSetObjectId(this.jvnGetObjectId());
             storeById.put(jo.jvnGetObjectId(), jo);
+
+            List<LockInfo> locks = new ArrayList<LockInfo>();
+            storeLocks.put(jo.jvnGetObjectId(), locks);
+
+            // Add the lock info to the list
+            locks.add(new LockInfo(js, jo.getLock()));
+
         } else {
             throw new jvn.JvnException("Object " + jon + " is already registered.");
         }
@@ -87,17 +94,17 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
         if (jo != null) {
             jo = jo.clone();
-
-            // Get the locks list for this JvnObject
-            List<LockInfo> locks = storeLocks.get(jo.jvnGetObjectId());
-            if (locks == null) {
-                // No locks registered for this JvnObject ; add it to the hashmap
-                locks = new ArrayList<LockInfo>();
-                storeLocks.put(jo.jvnGetObjectId(), locks);
-
-                // Add the lock info to the list
-                locks.add(new LockInfo(js, jo.getLock()));
-            }
+            jo.setLock(Lock.NL);
+//            // Get the locks list for this JvnObject
+//            List<LockInfo> locks = storeLocks.get(jo.jvnGetObjectId());
+//            if (locks == null) {
+//                // No locks registered for this JvnObject ; add it to the hashmap
+//                locks = new ArrayList<LockInfo>();
+//                storeLocks.put(jo.jvnGetObjectId(), locks);
+//
+//                // Add the lock info to the list
+//                locks.add(new LockInfo(js, jo.getLock()));
+//            }
 
         }
 
@@ -218,19 +225,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             s = storeById.get(joi).jvnGetSharedObject();
         } else {
             // Acquire the lock
-            try {
-                while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
-                    s = jsWithLock.jvnInvalidateWriter(joi);
-                    wait();
-                }
 
-                while (!(jsWithReadLock = getJsWithReadLock(joi)).isEmpty()) {
-                    // invalidate readers one by one
-                    jsWithReadLock.get(0).jvnInvalidateReader(joi);
-                    wait();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            jsWithLock = getJsWithWriteLock(joi);
+            s = jsWithLock.jvnInvalidateWriter(joi);
+
+            while (!(jsWithReadLock = getJsWithReadLock(joi)).isEmpty()) {
+                // invalidate readers one by one
+                jsWithReadLock.get(0).jvnInvalidateReader(joi);
             }
         }
 

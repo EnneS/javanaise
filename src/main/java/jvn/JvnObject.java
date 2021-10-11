@@ -107,4 +107,10 @@ public interface JvnObject extends Serializable {
      * @return the clone
      */
     public JvnObject clone();
+
+    /**
+     * Set the lock of the object only locally
+     * @param lock
+     */
+    public void setLock(Lock lock);
 }
