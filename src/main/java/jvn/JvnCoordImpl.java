@@ -26,7 +26,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
     private int lastId;
 
-    private HashMap<String, JvnObject> storeByName = new HashMap<>();
+    private HashMap<String, Integer> storeByName = new HashMap<>();
     private HashMap<Integer, JvnObject> storeById = new HashMap<>();
     private HashMap<Integer, List<LockInfo>> storeLocks = new HashMap<>();
 
@@ -67,8 +67,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             throws java.rmi.RemoteException, jvn.JvnException {
         // Add the JvnObject to the store if it doesn't already exist
         if (storeByName.get(jon) == null) {
-            storeByName.put(jon, jo);
             jo.jvnSetObjectId(this.jvnGetObjectId());
+            storeByName.put(jon, jo.jvnGetObjectId());
             storeById.put(jo.jvnGetObjectId(), jo);
 
             List<LockInfo> locks = new ArrayList<LockInfo>();
@@ -89,7 +89,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @throws java.rmi.RemoteException,JvnException
      **/
     public JvnObject jvnLookupObject(String jon, JvnRemoteServer js) throws java.rmi.RemoteException, jvn.JvnException {
-        JvnObject jo = storeByName.get(jon);
+        JvnObject jo = storeById.get(storeByName.get(jon));
 
         if (jo != null) {
             jo = jo.clone();
@@ -252,6 +252,14 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @throws java.rmi.RemoteException, JvnException
      **/
     public void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
-        // to be completed
+        // Remove lock infos for this js
+        for (int joi : this.storeById.keySet()) {
+            List<LockInfo> locks = this.storeLocks.get(joi);
+            for (LockInfo lockInfo : locks) {
+                if(lockInfo.getJvnRemoteServer().equals(js)){
+                    locks.remove(lockInfo);
+                }
+            }
+        }
     }
 }
