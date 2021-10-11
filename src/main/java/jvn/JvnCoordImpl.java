@@ -136,35 +136,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         return jsWithReadLock;
     }
 
-    /**
-     * Get a Read lock on a JVN object managed by a given JVN server
-     *
-     * @param joi : the JVN object identification
-     * @param js  : the remote reference of the server
-     * @return the current JVN object state
-     * @throws java.rmi.RemoteException, JvnException
-     **/
-    public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
-            throws java.rmi.RemoteException, JvnException {
-
-        JvnRemoteServer jsWithLock = null;
-        Serializable s = null;
-
-        // If no server has a write lock on the object
-        if ((jsWithLock = getJsWithWriteLock(joi)) == null) {
-            // The server asking for the lock take it immediately.
-            s = storeById.get(joi).jvnGetSharedObject();
-        } else {
-            // Acquire the lock
-            try {
-                while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
-                    s = jsWithLock.jvnInvalidateWriterForReader(joi);
-                    wait();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    public void updateLockInfo(int joi, JvnRemoteServer js, Lock lock){
         // Update LockInfo for the server asking for a read lock
         List<LockInfo> locks = storeLocks.get(joi);
         Boolean found = false;
@@ -187,16 +159,42 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             locks.add(new LockInfo(js, Lock.R));
             storeLocks.put(joi, locks);
         }
+    }
+
+    /**
+     * Get a Read lock on a JVN object managed by a given JVN server
+     *
+     * @param joi : the JVN object identification
+     * @param js  : the remote reference of the server
+     * @return the current JVN object state
+     * @throws java.rmi.RemoteException, JvnException
+     **/
+    public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
+            throws java.rmi.RemoteException, JvnException {
+
+        JvnRemoteServer jsWithLock = null;
+        Serializable s = null;
+
+        try {
+            while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
+                s = jsWithLock.jvnInvalidateWriterForReader(joi);
+                wait();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        updateLockInfo(joi, js, Lock.R);
 
         // On met à jour l'objet qui possèdait le lock write dans le store
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
         // sans pour l'instant à priori)
         JvnObject o = storeById.get(joi);
-        o.jvnSetSharedObject(s);
+        if(s != null)
+            o.jvnSetSharedObject(s);
 
         // Renvoyer l'objet courant
-        return storeById.get(joi).jvnGetSharedObject();
-
+        return o.jvnGetSharedObject();
     }
 
     /**
@@ -235,28 +233,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
                 e.printStackTrace();
             }
         }
-        List<LockInfo> locks = storeLocks.get(joi);
-        Boolean found = false;
-        // Update LockInfo for the server asking for the new write lock
-        if (locks != null) {
-            for (LockInfo lockInfo : locks) {
-                if (lockInfo.getJvnRemoteServer() == js) {
-                    found = true;
-                    lockInfo.setLock(Lock.W);
-                }
-            }
 
-            // Si pas de lockInfo dans la liste on en créé un
-            if (!found) {
-                locks.add(new LockInfo(js, Lock.W));
-            }
-        } else {
-            // if lock list was null for joi create a new list containing the
-            // newly acquired readlock
-            locks = new ArrayList<LockInfo>();
-            locks.add(new LockInfo(js, Lock.W));
-            storeLocks.put(joi, locks);
-        }
+        updateLockInfo(joi, js, Lock.W);
 
         // On met à jour l'objet qui possèdait le lock write dans le store
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche

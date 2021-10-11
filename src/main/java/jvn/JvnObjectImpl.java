@@ -13,7 +13,7 @@ public class JvnObjectImpl implements JvnObject {
 	/* JvnObject Constructor */
 	public JvnObjectImpl(Serializable o) {
 		this.o = o;
-		this.lock = Lock.NL;
+		this.lock = Lock.W;
 	}
 
 	/**

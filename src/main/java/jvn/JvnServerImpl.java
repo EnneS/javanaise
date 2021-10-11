@@ -93,7 +93,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 
         JvnObject obj = new JvnObjectImpl(o);
 
-        obj.jvnLockWrite();
+        //obj.jvnLockWrite();
 
         return obj;
     }
