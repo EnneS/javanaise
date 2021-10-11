@@ -104,7 +104,8 @@ public class JvnObjectImpl implements JvnObject {
 	 * @throws JvnException
 	 **/
 	public void jvnInvalidateReader() throws jvn.JvnException {
-		this.lock = Lock.NL;
+		if(this.lock == Lock.RC || this.lock == Lock.R)
+			this.lock = Lock.NL;
 	}
 
 	/**
