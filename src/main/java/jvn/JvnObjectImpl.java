@@ -4,96 +4,190 @@ import java.io.Serializable;
 
 public class JvnObjectImpl implements JvnObject {
 
-    private Lock lock;
+	private Lock lock;
 
-    private Serializable o;
+	private Serializable o;
 
-    private int id;
+	private int id;
 
-    /* JvnObject Constructor */
-    public JvnObjectImpl(Serializable o, int id){
-        this.o = o;
-        this.lock = Lock.NL;
-        this.id = id;
-    }
+	/* JvnObject Constructor */
+	public JvnObjectImpl(Serializable o) {
+		this.o = o;
+	}
 
 	/**
-	* Get a Read lock on the shared object 
-	* @throws JvnException
-	**/
-	public void jvnLockRead()
-	throws jvn.JvnException {
-        this.lock = this.lock == Lock.WC ? Lock.RWC : Lock.R;
-    }
+	 * Get a Read lock on the shared object
+	 * 
+	 * @throws JvnException
+	 **/
+	public void jvnLockRead() throws jvn.JvnException {
+		System.out.print("[jvnLockRead] Lock " + getLock() + " ==> ");
+
+		if(this.lock == Lock.RC) {
+			this.lock = Lock.R;
+			System.out.println(getLock());
+			return;
+		} else if(this.lock == Lock.WC) {
+			this.lock = Lock.RWC;
+			System.out.println(getLock());
+			return;
+		} else if (this.lock == Lock.W || this.lock == Lock.R || this.lock == Lock.RWC){
+			System.out.println(getLock());
+			return;
+		}
+
+		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
+		this.o = js.jvnLockRead(this.jvnGetObjectId());
+		this.lock = Lock.R;
+		System.out.println(getLock());
+
+	}
 
 	/**
-	* Get a Write lock on the object 
-	* @throws JvnException
-	**/
-	public void jvnLockWrite()
-     	throws jvn.JvnException {
-        this.lock = Lock.W;
-    }
+	 * Get a Write lock on the object
+	 * 
+	 * @throws JvnException
+	 **/
+	public void jvnLockWrite() throws jvn.JvnException {
+		System.out.print("[jvnLockWrite] Lock " + getLock() + " ==> ");
+
+		if(this.lock == Lock.WC || this.lock == Lock.RWC) {
+			this.lock = Lock.W;
+			System.out.println(getLock());
+			return;
+		} else if (this.lock == Lock.W ){
+			System.out.println(getLock());
+			return;
+		}
+
+		JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
+		this.o = js.jvnLockWrite(this.jvnGetObjectId());
+		this.lock = Lock.W;
+		System.out.println(getLock());
+	}
 
 	/**
-	* Unlock  the object 
-	* @throws JvnException
-	**/
-	public void jvnUnLock()
-	throws jvn.JvnException {
-        this.lock = Lock.NL;
-    }
-	
-	/**
-	* Get the object identification
-	* @throws JvnException
-	**/
-	public int jvnGetObjectId()
-	throws jvn.JvnException {
-        return this.id;
-    }
-	
-	/**
-	* Get the shared object associated to this JvnObject
-	* @throws JvnException
-	**/
-	public Serializable jvnGetSharedObject()
-	throws jvn.JvnException {
-        return this.o;
-    }
-	
-	/**
-	* Invalidate the Read lock of the JVN object 
-	* @throws JvnException
-	**/
-  public void jvnInvalidateReader()
-	throws jvn.JvnException {
-        this.lock = Lock.NL;
-    }
-	    
-	/**
-	* Invalidate the Write lock of the JVN object  
-	* @return the current JVN object state
-	* @throws JvnException
-	**/
-  public Serializable jvnInvalidateWriter()
-	throws jvn.JvnException {
-        this.lock = Lock.NL;
-        return this.o;
-    }
-	
-	/**
-	* Reduce the Write lock of the JVN object 
-	* @return the current JVN object state
-	* @throws JvnException
-	**/
-   public Serializable jvnInvalidateWriterForReader()
-	 throws jvn.JvnException {
-         this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
-         return this.o;
-     } 
+	 * Unlock the object
+	 * 
+	 * @throws JvnException
+	 **/
+	public synchronized void jvnUnLock() throws jvn.JvnException {
+		System.out.print("[jvnUnlock] Lock " + getLock() + " ==> ");
 
-    public Lock getLock(){
-        return this.lock;
-    }
+		if(this.lock == Lock.R)
+			this.lock = Lock.RC;
+		else if(this.lock == Lock.W)
+			this.lock = Lock.WC;
+
+		notify();
+		System.out.println(getLock());
+	}
+
+	/**
+	 * Get the object identification
+	 * 
+	 * @throws JvnException
+	 **/
+	public int jvnGetObjectId() throws jvn.JvnException {
+		return this.id;
+	}
+
+	/**
+	 * Set the object identification
+	 * 
+	 * @throws JvnException
+	 **/
+	public void jvnSetObjectId(int id) throws jvn.JvnException {
+		this.id = id;
+	}
+
+	/**
+	 * Get the shared object associated to this JvnObject
+	 * 
+	 * @throws JvnException
+	 **/
+	public Serializable jvnGetSharedObject() throws jvn.JvnException {
+		return this.o;
+	}
+
+	/**
+	 * Set the shared object associated to this JvnObject
+	 * 
+	 * @throws JvnException
+	 **/
+	public void jvnSetSharedObject(Serializable o) throws jvn.JvnException {
+		this.o = o;
+	}
+
+	/**
+	 * Invalidate the Read lock of the JVN object
+	 * 
+	 * @throws JvnException
+	 **/
+	public void jvnInvalidateReader() throws jvn.JvnException {
+		System.out.print("[InvalidateReader] Lock " + getLock() + " ==> ");
+
+		if(this.lock == Lock.RC || this.lock == Lock.R)
+			this.lock = Lock.NL;
+
+		System.out.println(getLock());
+	}
+
+	/**
+	 * Invalidate the Write lock of the JVN object
+	 * 
+	 * @return the current JVN object state
+	 * @throws JvnException
+	 **/
+	public synchronized Serializable jvnInvalidateWriter() throws jvn.JvnException {
+		System.out.print("[InvalidateWriter] Lock " + getLock() + " ==> ");
+		if(this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL) {
+			try {
+				wait();
+			}catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		this.lock = Lock.NL;
+		System.out.println(getLock());
+		return o;
+	}
+
+	/**
+	 * Reduce the Write lock of the JVN object
+	 * 
+	 * @return the current JVN object state
+	 * @throws JvnException
+	 **/
+	public synchronized Serializable jvnInvalidateWriterForReader() throws jvn.JvnException {
+		System.out.print("[InvalidateWriterForReader] Lock " + getLock() + " ==> ");
+		if(this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL && this.lock != Lock.RWC) {
+			try {
+				wait();
+			}catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
+		System.out.println(getLock());
+		return this.o;
+	}
+
+	public Lock getLock() {
+		return this.lock;
+	}
+
+	public JvnObject clone() {
+		JvnObjectImpl clone = new JvnObjectImpl(this.o);
+		try {
+			clone.id = this.jvnGetObjectId();
+		} catch (JvnException e) {
+			e.printStackTrace();
+		}
+		return clone;
+	}
+
+	public void setLock(Lock lock) {
+		this.lock = lock;
+	}
 }
