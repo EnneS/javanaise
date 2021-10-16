@@ -80,7 +80,11 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
      * @throws JvnException
      **/
     public void jvnTerminate() throws jvn.JvnException {
-        // to be completed
+        try {
+            coord.jvnTerminate(this);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
