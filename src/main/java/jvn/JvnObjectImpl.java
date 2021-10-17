@@ -24,25 +24,27 @@ public class JvnObjectImpl implements JvnObject {
         if (JvnGlobals.debug)
             System.out.print("[jvnLockRead] Lock " + getLock() + " ==> ");
 
-        if (this.lock == Lock.RC) {
-            this.lock = Lock.R;
-            if (JvnGlobals.debug)
-                System.out.println(getLock());
-            return;
-        } else if (this.lock == Lock.WC) {
-            this.lock = Lock.RWC;
-            if (JvnGlobals.debug)
-                System.out.println(getLock());
-            return;
-        } else if (this.lock == Lock.W || this.lock == Lock.R || this.lock == Lock.RWC) {
-            if (JvnGlobals.debug)
-                System.out.println(getLock());
-            return;
+        synchronized (this) {
+            if (this.lock == Lock.RC) {
+                this.lock = Lock.R;
+                if (JvnGlobals.debug)
+                    System.out.println(getLock());
+                return;
+            } else if (this.lock == Lock.WC) {
+                this.lock = Lock.RWC;
+                if (JvnGlobals.debug)
+                    System.out.println(getLock());
+                return;
+            } else if (this.lock == Lock.W || this.lock == Lock.R || this.lock == Lock.RWC) {
+                if (JvnGlobals.debug)
+                    System.out.println(getLock());
+                return;
+            }
         }
 
+        this.lock = Lock.R;
         JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
         this.o = js.jvnLockRead(this.jvnGetObjectId());
-        this.lock = Lock.R;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
@@ -69,13 +71,13 @@ public class JvnObjectImpl implements JvnObject {
                 return;
             }
         }
+
+        this.lock = Lock.W;
         JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
         this.o = js.jvnLockWrite(this.jvnGetObjectId());
-        this.lock = Lock.W;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
-
     }
 
     /**
@@ -89,7 +91,7 @@ public class JvnObjectImpl implements JvnObject {
 
         if (this.lock == Lock.R)
             this.lock = Lock.RC;
-        else if (this.lock == Lock.W)
+        else if (this.lock == Lock.W || this.lock == Lock.RWC)
             this.lock = Lock.WC;
 
         notify();
@@ -166,7 +168,8 @@ public class JvnObjectImpl implements JvnObject {
                 System.err.println(e.getMessage());
             }
         }
-        this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
+//        this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
+        this.lock = Lock.NL;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
