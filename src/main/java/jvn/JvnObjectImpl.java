@@ -141,7 +141,7 @@ public class JvnObjectImpl implements JvnObject {
         if (JvnGlobals.debug)
             System.out.print("[InvalidateReader] Lock " + getLock() + " ==> ");
 
-        if (this.lock == Lock.RC || this.lock == Lock.R)
+        if (this.lock == Lock.RC || this.lock == Lock.R || this.lock == Lock.RWC)
             this.lock = Lock.NL;
 
         if (JvnGlobals.debug)
