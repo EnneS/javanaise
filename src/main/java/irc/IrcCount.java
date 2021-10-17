@@ -41,8 +41,11 @@ public class IrcCount {
             }
             int c = 0;
             // Count to 100.
-            while (c < 100) {
+                        Random r = new Random();
+
+            while (c < 500) {
                 c = write(js, jo);
+                Thread.sleep(r.nextInt(80));
             }
             System.out.print("fini\n");
             while (true) {
@@ -60,33 +63,6 @@ public class IrcCount {
      **/
     public IrcCount(JvnObject jo) {
         counter = jo;
-    }
-
-    /**
-     * 
-     * @param jo
-     * @param js
-     * @return -1 if error, n>0 otherwise
-     */
-    public static int read(JvnObject jo, JvnServerImpl js) {
-        int res = -1;
-        try {
-            // lock the object in read mode
-            jo.jvnLockRead();
-            Random r = new Random();
-            // invoke the method
-            res = ((Counter) (jo.jvnGetSharedObject())).getCounter();
-            System.out.println("[" + js.hashCode() + "]" + "Reading " + res);
-            // Sleep between 0 and 100 ms
-            Thread.sleep(r.nextInt(100));
-            // unlock the object
-            jo.jvnUnLock();
-        } catch (JvnException je) {
-            System.out.println("IRC problem : " + je.getMessage());
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        return res;
     }
 
     public static int write(JvnLocalServer js, JvnObject jo) {
