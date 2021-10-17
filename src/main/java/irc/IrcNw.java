@@ -8,16 +8,18 @@
 package irc;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Random;
 import java.util.Scanner;
 
 import jvn.JvnException;
+import jvn.JvnLocalServer;
 import jvn.JvnObject;
 import jvn.JvnServerImpl;
 
 public class IrcNw {
 
-    JvnObject sentence;
+    JvnObject counter;
 
     /**
      * main method create a JVN object nammed IRC for representing the Chat
@@ -34,7 +36,7 @@ public class IrcNw {
             JvnObject jo = js.jvnLookupObject("IRC");
 
             if (jo == null) {
-                jo = js.jvnCreateObject((Serializable) new Sentence());
+                jo = js.jvnCreateObject(new Counter());
                 // after creation, I have a write lock on the object
                 jo.jvnUnLock();
 
@@ -43,19 +45,8 @@ public class IrcNw {
             int c = 0;
             Random r = new Random();
             // Count to 20.
-            while (c < 1000) {
-                // Read or write at random
-                if (r.nextInt(2) == 1) {
-                    write(jo, "from " + js.hashCode() + " : " + c + "\n");
-                    c++;
-                } else {
-                    int res = read(jo, js);
-                    if (res > 0) {
-                        c = res;
-                    }
-                }
-                // Sleep between 0 and 100 ms
-                Thread.sleep(r.nextInt(100));
+            while (c < 10) {
+                write(js, jo);
             }
             System.out.print("fini\n");
             while (true) {
@@ -72,7 +63,7 @@ public class IrcNw {
      * @param jo the JVN object representing the Chat
      **/
     public IrcNw(JvnObject jo) {
-        sentence = jo;
+        counter = jo;
     }
 
     /**
@@ -113,16 +104,17 @@ public class IrcNw {
         return res;
     }
 
-    public static void write(JvnObject jo, String s) {
+    public static void write(JvnLocalServer js, JvnObject jo) {
         try {
             // lock the object in read mode
             jo.jvnLockWrite();
             Random r = new Random();
-            System.out.print("Write " + s + "\n");
             // invoke the method
-            ((Sentence) (jo.jvnGetSharedObject())).write(s);
+            ((Counter) jo .jvnGetSharedObject()).plus();
+            
+            System.out.println("[" + js.hashCode() + "]" + "Writing " + ((Counter) jo .jvnGetSharedObject()).counter);
             // Sleep between 0 and 1000 ms
-            Thread.sleep(r.nextInt(1000));
+            Thread.sleep(r.nextInt(80));
             // unlock the object
             jo.jvnUnLock();
 

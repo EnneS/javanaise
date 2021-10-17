@@ -53,7 +53,7 @@ public class JvnObjectImpl implements JvnObject {
 	 * 
 	 * @throws JvnException
 	 **/
-	public void jvnLockWrite() throws jvn.JvnException {
+	public synchronized void jvnLockWrite() throws jvn.JvnException {
 		if (JvnGlobals.debug)
 			System.out.print("[jvnLockWrite] Lock " + getLock() + " ==> ");
 
