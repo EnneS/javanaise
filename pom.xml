@@ -33,9 +33,9 @@
                     </configuration>
                 </execution>
 		        <execution>
-		            <id>ircNw</id>
+		            <id>ircCount</id>
 		            <configuration>
-		            <mainClass>irc.IrcNw</mainClass>
+		            <mainClass>irc.IrcCount</mainClass>
 		            </configuration>
 		        </execution>
                 <execution>

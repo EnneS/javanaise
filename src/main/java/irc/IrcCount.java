@@ -8,14 +8,13 @@
 package irc;
 
 import java.util.Random;
-import java.util.Scanner;
 
 import jvn.JvnException;
 import jvn.JvnLocalServer;
 import jvn.JvnObject;
 import jvn.JvnServerImpl;
 
-public class IrcNw {
+public class IrcCount {
 
     JvnObject counter;
 
@@ -59,7 +58,7 @@ public class IrcNw {
      *
      * @param jo the JVN object representing the Chat
      **/
-    public IrcNw(JvnObject jo) {
+    public IrcCount(JvnObject jo) {
         counter = jo;
     }
 

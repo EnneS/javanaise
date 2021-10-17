@@ -8,14 +8,14 @@
  mvn exec:java@coord &
  P0=$!
  sleep 2
- mvn exec:java@ircNw &
+ mvn exec:java@ircCount &
  P1=$!
  sleep 1
- mvn exec:java@ircNw &
+ mvn exec:java@ircCount &
  P2=$!
- mvn exec:java@ircNw &
+ mvn exec:java@ircCount &
  P3=$!
- mvn exec:java@ircNw &
+ mvn exec:java@ircCount &
  P4=$!
  wait $P0 $P1 $P2 $P3 $P4
 )
