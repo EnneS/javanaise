@@ -106,7 +106,7 @@ public class IrcFuzz {
             // invoke the method
             ((Counter) jo.jvnGetSharedObject()).plus();
             res = ((Counter) jo.jvnGetSharedObject()).getCounter();
-            System.out.println("[" + js.hashCode() + "]" + "Writing " + ((Counter) jo.jvnGetSharedObject()).counter);
+            System.out.println("[" + js.hashCode() + "]" + "Writing " + res);
             // Sleep between 0 and 100 ms
             Thread.sleep(r.nextInt(100));
             // unlock the object
