@@ -51,8 +51,6 @@ public class IrcFuzz {
                 }
                 // Sleep between 0 and 100 ms
                 Thread.sleep(r.nextInt(100));
-
-                c = write(js, jo);
             }
             System.out.print("fini\n");
             while (true) {
