@@ -7,8 +7,6 @@
 
 package irc;
 
-import java.io.Serializable;
-import java.util.Date;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -43,10 +41,9 @@ public class IrcNw {
                 js.jvnRegisterObject("IRC", jo);
             }
             int c = 0;
-            Random r = new Random();
-            // Count to 20.
-            while (c < 10) {
-                write(js, jo);
+            // Count to 100.
+            while (c < 100) {
+                c = write(js, jo);
             }
             System.out.print("fini\n");
             while (true) {
@@ -104,15 +101,16 @@ public class IrcNw {
         return res;
     }
 
-    public static void write(JvnLocalServer js, JvnObject jo) {
+    public static int write(JvnLocalServer js, JvnObject jo) {
+        int res = 0;
         try {
             // lock the object in read mode
             jo.jvnLockWrite();
             Random r = new Random();
             // invoke the method
-            ((Counter) jo .jvnGetSharedObject()).plus();
-            
-            System.out.println("[" + js.hashCode() + "]" + "Writing " + ((Counter) jo .jvnGetSharedObject()).counter);
+            ((Counter) jo.jvnGetSharedObject()).plus();
+            res = ((Counter) jo.jvnGetSharedObject()).getCounter();
+            System.out.println("[" + js.hashCode() + "]" + "Writing " + ((Counter) jo.jvnGetSharedObject()).counter);
             // Sleep between 0 and 1000 ms
             Thread.sleep(r.nextInt(80));
             // unlock the object
@@ -123,6 +121,7 @@ public class IrcNw {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return res;
     }
 
 }

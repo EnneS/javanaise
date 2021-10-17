@@ -10,6 +10,7 @@
  sleep 2
  mvn exec:java@ircNw &
  P1=$!
+ sleep 1
  mvn exec:java@ircNw &
  P2=$!
  mvn exec:java@ircNw &
