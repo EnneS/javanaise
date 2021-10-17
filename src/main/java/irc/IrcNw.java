@@ -76,23 +76,12 @@ public class IrcNw {
             jo.jvnLockRead();
             Random r = new Random();
             // invoke the method
-            String s = ((Sentence) (jo.jvnGetSharedObject())).read();
+            res = ((Counter) (jo.jvnGetSharedObject())).getCounter();
+            System.out.println("[" + js.hashCode() + "]" + "Reading " + res);
             // Sleep between 0 and 100 ms
-            Thread.sleep(r.nextInt(1000));
+            Thread.sleep(r.nextInt(100));
             // unlock the object
             jo.jvnUnLock();
-
-            // display the read value
-            System.out.print((js.hashCode() + " read " + s + "\n"));
-            Scanner sc = new Scanner(s);
-
-            try {
-                sc.skip("from \\d+ : ");
-                res = sc.nextInt();
-            } catch (Exception e) {
-                res = -1;
-            }
-            sc.close();
         } catch (JvnException je) {
             System.out.println("IRC problem : " + je.getMessage());
         } catch (InterruptedException e1) {
