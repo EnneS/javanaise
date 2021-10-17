@@ -53,27 +53,29 @@ public class JvnObjectImpl implements JvnObject {
      * 
      * @throws JvnException
      **/
-    public synchronized void jvnLockWrite() throws jvn.JvnException {
+    public void jvnLockWrite() throws jvn.JvnException {
         if (JvnGlobals.debug)
             System.out.print("[jvnLockWrite] Lock " + getLock() + " ==> ");
 
-        if (this.lock == Lock.WC || this.lock == Lock.RWC) {
-            this.lock = Lock.W;
-            if (JvnGlobals.debug)
-                System.out.println(getLock());
-            return;
-        } else if (this.lock == Lock.W) {
-            if (JvnGlobals.debug)
-                System.out.println(getLock());
-            return;
+        synchronized (this) {
+            if (this.lock == Lock.WC || this.lock == Lock.RWC) {
+                this.lock = Lock.W;
+                if (JvnGlobals.debug)
+                    System.out.println(getLock());
+                return;
+            } else if (this.lock == Lock.W) {
+                if (JvnGlobals.debug)
+                    System.out.println(getLock());
+                return;
+            }
         }
-
         JvnLocalServer js = JvnServerImpl.jvnGetServer("localhost");
         this.o = js.jvnLockWrite(this.jvnGetObjectId());
         this.lock = Lock.W;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
+
     }
 
     /**
@@ -137,12 +139,11 @@ public class JvnObjectImpl implements JvnObject {
      * 
      * @throws JvnException
      **/
-    public void jvnInvalidateReader() throws jvn.JvnException {
+    public synchronized void jvnInvalidateReader() throws jvn.JvnException {
         if (JvnGlobals.debug)
             System.out.print("[InvalidateReader] Lock " + getLock() + " ==> ");
 
-        if (this.lock == Lock.RC || this.lock == Lock.R || this.lock == Lock.RWC)
-            this.lock = Lock.NL;
+        this.lock = Lock.NL;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
@@ -158,14 +159,14 @@ public class JvnObjectImpl implements JvnObject {
         if (JvnGlobals.debug)
             System.out.print("[InvalidateWriter] Lock " + getLock() + " ==> ");
 
-        if (this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL) {
+        while (this.lock == Lock.W) {
             try {
                 wait();
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
         }
-        this.lock = Lock.NL;
+        this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
@@ -183,14 +184,14 @@ public class JvnObjectImpl implements JvnObject {
         if (JvnGlobals.debug)
             System.out.print("[InvalidateWriterForReader] Lock " + getLock() + " ==> ");
 
-        if (this.lock != Lock.WC && this.lock != Lock.RC && this.lock != Lock.NL && this.lock != Lock.RWC) {
+        while (this.lock == Lock.W) {
             try {
                 wait();
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
         }
-        this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
+        this.lock = Lock.RC;
 
         if (JvnGlobals.debug)
             System.out.println(getLock());
