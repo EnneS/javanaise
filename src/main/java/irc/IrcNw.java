@@ -7,13 +7,13 @@
 
 package irc;
 
-import jvn.*;
-
-import java.io.*;
-import java.util.InputMismatchException;
+import java.io.Serializable;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.regex.MatchResult;
+
+import jvn.JvnException;
+import jvn.JvnObject;
+import jvn.JvnServerImpl;
 
 public class IrcNw {
 
@@ -43,7 +43,7 @@ public class IrcNw {
             int c = 0;
             Random r = new Random();
             // Count to 20.
-            while (c < 20) {
+            while (c < 1000) {
                 // Read or write at random
                 if (r.nextInt(2) == 1) {
                     write(jo, "from " + js.hashCode() + " : " + c + "\n");
@@ -55,7 +55,7 @@ public class IrcNw {
                     }
                 }
                 // Sleep between 0 and 100 ms
-                Thread.sleep(r.nextInt(1000));
+                Thread.sleep(r.nextInt(100));
             }
             System.out.print("fini\n");
             while (true) {
@@ -86,10 +86,11 @@ public class IrcNw {
         try {
             // lock the object in read mode
             jo.jvnLockRead();
-
+            Random r = new Random();
             // invoke the method
             String s = ((Sentence) (jo.jvnGetSharedObject())).read();
-
+            // Sleep between 0 and 100 ms
+            Thread.sleep(r.nextInt(1000));
             // unlock the object
             jo.jvnUnLock();
 
@@ -104,10 +105,10 @@ public class IrcNw {
                 res = -1;
             }
             sc.close();
-        } catch (
-
-        JvnException je) {
+        } catch (JvnException je) {
             System.out.println("IRC problem : " + je.getMessage());
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
         }
         return res;
     }
@@ -116,16 +117,19 @@ public class IrcNw {
         try {
             // lock the object in read mode
             jo.jvnLockWrite();
-
+            Random r = new Random();
             System.out.print("Write " + s + "\n");
             // invoke the method
             ((Sentence) (jo.jvnGetSharedObject())).write(s);
-
+            // Sleep between 0 and 1000 ms
+            Thread.sleep(r.nextInt(1000));
             // unlock the object
             jo.jvnUnLock();
 
         } catch (JvnException je) {
             System.out.println("IRC problem : " + je.getMessage());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

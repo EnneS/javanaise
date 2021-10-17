@@ -32,12 +32,12 @@
                     <mainClass>irc.Irc</mainClass>
                     </configuration>
                 </execution>
-		<execution>
-		    <id>ircNw</id>
-		    <configuration>
-		    <mainClass>irc.IrcNw</mainClass>
-		    </configuration>
-		</execution>
+		        <execution>
+		            <id>ircNw</id>
+		            <configuration>
+		            <mainClass>irc.IrcNw</mainClass>
+		            </configuration>
+		        </execution>
                 </executions>
             </plugin>
         </plugins> 
