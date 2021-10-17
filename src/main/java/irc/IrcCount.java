@@ -7,17 +7,16 @@
 
 package irc;
 
-import java.io.Serializable;
 import java.util.Random;
-import java.util.Scanner;
 
 import jvn.JvnException;
+import jvn.JvnLocalServer;
 import jvn.JvnObject;
 import jvn.JvnServerImpl;
 
-public class IrcNw {
+public class IrcCount {
 
-    JvnObject sentence;
+    JvnObject counter;
 
     /**
      * main method create a JVN object nammed IRC for representing the Chat
@@ -34,28 +33,16 @@ public class IrcNw {
             JvnObject jo = js.jvnLookupObject("IRC");
 
             if (jo == null) {
-                jo = js.jvnCreateObject((Serializable) new Sentence());
+                jo = js.jvnCreateObject(new Counter());
                 // after creation, I have a write lock on the object
                 jo.jvnUnLock();
 
                 js.jvnRegisterObject("IRC", jo);
             }
             int c = 0;
-            Random r = new Random();
-            // Count to 20.
-            while (c < 1000) {
-                // Read or write at random
-                if (r.nextInt(2) == 1) {
-                    write(jo, "from " + js.hashCode() + " : " + c + "\n");
-                    c++;
-                } else {
-                    int res = read(jo, js);
-                    if (res > 0) {
-                        c = res;
-                    }
-                }
-                // Sleep between 0 and 100 ms
-                Thread.sleep(r.nextInt(100));
+            // Count to 100.
+            while (c < 100) {
+                c = write(js, jo);
             }
             System.out.print("fini\n");
             while (true) {
@@ -71,8 +58,8 @@ public class IrcNw {
      *
      * @param jo the JVN object representing the Chat
      **/
-    public IrcNw(JvnObject jo) {
-        sentence = jo;
+    public IrcCount(JvnObject jo) {
+        counter = jo;
     }
 
     /**
@@ -88,23 +75,12 @@ public class IrcNw {
             jo.jvnLockRead();
             Random r = new Random();
             // invoke the method
-            String s = ((Sentence) (jo.jvnGetSharedObject())).read();
+            res = ((Counter) (jo.jvnGetSharedObject())).getCounter();
+            System.out.println("[" + js.hashCode() + "]" + "Reading " + res);
             // Sleep between 0 and 100 ms
-            Thread.sleep(r.nextInt(1000));
+            Thread.sleep(r.nextInt(100));
             // unlock the object
             jo.jvnUnLock();
-
-            // display the read value
-            System.out.print((js.hashCode() + " read " + s + "\n"));
-            Scanner sc = new Scanner(s);
-
-            try {
-                sc.skip("from \\d+ : ");
-                res = sc.nextInt();
-            } catch (Exception e) {
-                res = -1;
-            }
-            sc.close();
         } catch (JvnException je) {
             System.out.println("IRC problem : " + je.getMessage());
         } catch (InterruptedException e1) {
@@ -113,16 +89,18 @@ public class IrcNw {
         return res;
     }
 
-    public static void write(JvnObject jo, String s) {
+    public static int write(JvnLocalServer js, JvnObject jo) {
+        int res = 0;
         try {
             // lock the object in read mode
             jo.jvnLockWrite();
             Random r = new Random();
-            System.out.print("Write " + s + "\n");
             // invoke the method
-            ((Sentence) (jo.jvnGetSharedObject())).write(s);
+            ((Counter) jo.jvnGetSharedObject()).plus();
+            res = ((Counter) jo.jvnGetSharedObject()).getCounter();
+            System.out.println("[" + js.hashCode() + "]" + "Writing " + ((Counter) jo.jvnGetSharedObject()).counter);
             // Sleep between 0 and 1000 ms
-            Thread.sleep(r.nextInt(1000));
+            Thread.sleep(r.nextInt(80));
             // unlock the object
             jo.jvnUnLock();
 
@@ -131,6 +109,7 @@ public class IrcNw {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return res;
     }
 
 }

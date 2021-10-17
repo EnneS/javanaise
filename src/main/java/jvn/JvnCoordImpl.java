@@ -155,11 +155,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             storeLocks.put(joi, locks);
         }
 
-                  
-        System.out.println("Locks for " + joi +" : ");
-        for(LockInfo lockInfo : this.storeLocks.get(joi)){
-            System.out.println("\t" + lockInfo.getJvnRemoteServer().hashCode() + " - " + lockInfo.getLock());
-        }
+		if (JvnGlobals.debug) {
+            System.out.println("Locks for " + joi +" : ");
+            for(LockInfo lockInfo : this.storeLocks.get(joi)){
+                System.out.println("\t" + lockInfo.getJvnRemoteServer().hashCode() + " - " + lockInfo.getLock());
+            }
+        }                  
     }
 
     /**
@@ -172,16 +173,17 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      **/
     public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
-        System.out.println(js.hashCode() + " wants to acquire lock read on " + joi);
+        if (JvnGlobals.debug)
+            System.out.println(js.hashCode() + " wants to acquire lock read on " + joi);
 
         JvnRemoteServer jsWithLock = null;
         Serializable s = null;
 
         while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
-            System.out.println("Invalidate Writer for Reader : " + jsWithLock.hashCode());
+            if (JvnGlobals.debug)
+                System.out.println("Invalidate Writer for Reader : " + jsWithLock.hashCode());
             s = jsWithLock.jvnInvalidateWriterForReader(joi);
             this.updateLockInfo(joi, jsWithLock, Lock.R);
-            System.out.println(jsWithLock.hashCode());
         }
 
         updateLockInfo(joi, js, Lock.R);
@@ -207,7 +209,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      **/
     public synchronized Serializable jvnLockWrite(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
-        System.out.println(js.hashCode() + " wants to acquire lock write on " + joi);
+        if (JvnGlobals.debug)
+            System.out.println(js.hashCode() + " wants to acquire lock write on " + joi);
 
         JvnRemoteServer jsWithLock = null;
         List<JvnRemoteServer> jsWithReadLock = null;
@@ -216,14 +219,17 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // Acquire the lock
         jsWithLock = getJsWithWriteLock(joi);
         if(jsWithLock != null) {
-            System.out.println("Invalidate Writer : " + jsWithLock.hashCode());
-            s = jsWithLock.jvnInvalidateWriter(joi);
+            if (JvnGlobals.debug)
+                System.out.println("Invalidate Writer : " + jsWithLock.hashCode());
+    
+                s = jsWithLock.jvnInvalidateWriter(joi);
             this.updateLockInfo(joi, jsWithLock, Lock.NL);
         }
 
         while (!(jsWithReadLock = getJsWithReadLock(joi, js)).isEmpty()) {
             // invalidate readers one by one
-            System.out.println("Invalidate Reader : " + jsWithReadLock.get(0).hashCode());
+            if (JvnGlobals.debug)
+                System.out.println("Invalidate Reader : " + jsWithReadLock.get(0).hashCode());
             jsWithReadLock.get(0).jvnInvalidateReader(joi);
             if(jsWithLock != jsWithReadLock.get(0))
                 this.updateLockInfo(joi, jsWithReadLock.get(0), Lock.NL);

@@ -2,7 +2,13 @@ package jvn;
 
 public class Coord {
 
-    public static void main(String[] args) {
+    public static void main(String[] argv) {
+        for (String arg : argv) {
+            if(arg.equals("-v")){
+                JvnGlobals.debug = true;
+            }
+        }
+        
         try {
             JvnCoordImpl coord = JvnCoordImpl.getJvnCoordImpl();
 

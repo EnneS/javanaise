@@ -20,11 +20,19 @@ public class Irc {
     SentenceItf sentence;
 
 
+
+
     /**
      * main method
      * create a JVN object nammed IRC for representing the Chat application
      **/
     public static void main(String argv[]) {
+        for (String arg : argv) {
+            if(arg.equals("-v")){
+                JvnGlobals.debug = true;
+            }
+        }
+
         try {
             // look up the IRC object in the JVN server
             // if not found, create it, and register it in the JVN server
