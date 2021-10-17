@@ -38,6 +38,12 @@
 		            <mainClass>irc.IrcNw</mainClass>
 		            </configuration>
 		        </execution>
+                <execution>
+		        <id>ircFuzz</id>
+		            <configuration>
+		            <mainClass>irc.IrcFuzz</mainClass>
+		            </configuration>
+		        </execution>
                 </executions>
             </plugin>
         </plugins> 
