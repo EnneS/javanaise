@@ -49,7 +49,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * Allocate a NEW JVN object id (usually allocated to a newly created JVN
      * object)
      *
-     * @throws java.rmi.RemoteException,JvnException
+     * @return The object id.
+     * @throws java.rmi.RemoteException Remote exception
+     * @throws JvnException             Jvn exception
      **/
     public int jvnGetObjectId() throws java.rmi.RemoteException, jvn.JvnException {
         return this.lastId++;
@@ -61,7 +63,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param jon : the JVN object name
      * @param jo  : the JVN object
      * @param js  : the remote reference of the JVNServer
-     * @throws java.rmi.RemoteException,JvnException
+     * @throws java.rmi.RemoteException Remote exception
+     * @throws JvnException             Jvn exception
      **/
     public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
             throws java.rmi.RemoteException, jvn.JvnException {
@@ -86,7 +89,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      *
      * @param jon : the JVN object name
      * @param js  : the remote reference of the JVNServer
-     * @throws java.rmi.RemoteException,JvnException
+     * @throws java.rmi.RemoteException Remote exception
+     * @throws JvnException             Jvn exception
      **/
     public JvnObject jvnLookupObject(String jon, JvnRemoteServer js) throws java.rmi.RemoteException, jvn.JvnException {
         JvnObject jo = storeById.get(storeByName.get(jon));
@@ -105,7 +109,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
         if (locks != null) {
             for (LockInfo lockInfo : locks) {
-                
+
                 if (lockInfo.getLock() == Lock.W || lockInfo.getLock() == Lock.WC) {
                     jsWithLock = lockInfo.getJvnRemoteServer();
                     break;
@@ -131,7 +135,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         return jsWithReadLock;
     }
 
-    public void updateLockInfo(int joi, JvnRemoteServer js, Lock lock){
+    private void updateLockInfo(int joi, JvnRemoteServer js, Lock lock) {
         // Update LockInfo for the server asking for a read lock
         List<LockInfo> locks = storeLocks.get(joi);
         Boolean found = false;
@@ -155,12 +159,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             storeLocks.put(joi, locks);
         }
 
-		if (JvnGlobals.debug) {
-            System.out.println("Locks for " + joi +" : ");
-            for(LockInfo lockInfo : this.storeLocks.get(joi)){
+        if (JvnGlobals.debug) {
+            System.out.println("Locks for " + joi + " : ");
+            for (LockInfo lockInfo : this.storeLocks.get(joi)) {
                 System.out.println("\t" + lockInfo.getJvnRemoteServer().hashCode() + " - " + lockInfo.getLock());
             }
-        }                  
+        }
     }
 
     /**
@@ -169,7 +173,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param joi : the JVN object identification
      * @param js  : the remote reference of the server
      * @return the current JVN object state
-     * @throws java.rmi.RemoteException, JvnException
+     * @throws java.rmi.RemoteException Remote exception
+     * @throws JvnException             Jvn exception
      **/
     public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
@@ -192,7 +197,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
         // sans pour l'instant à priori)
         JvnObject o = storeById.get(joi);
-        if(s != null)
+        if (s != null)
             o.jvnSetSharedObject(s);
 
         // Renvoyer l'objet courant
@@ -205,7 +210,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param joi : the JVN object identification
      * @param js  : the remote reference of the server
      * @return the current JVN object state
-     * @throws java.rmi.RemoteException, JvnException
+     * @throws java.rmi.RemoteException Remote exception
+     * @throws JvnException             Jvn exception
      **/
     public synchronized Serializable jvnLockWrite(int joi, JvnRemoteServer js)
             throws java.rmi.RemoteException, JvnException {
@@ -218,11 +224,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
         // Acquire the lock
         jsWithLock = getJsWithWriteLock(joi);
-        if(jsWithLock != null) {
+        if (jsWithLock != null) {
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Writer : " + jsWithLock.hashCode());
-    
-                s = jsWithLock.jvnInvalidateWriter(joi);
+
+            s = jsWithLock.jvnInvalidateWriter(joi);
             this.updateLockInfo(joi, jsWithLock, Lock.NL);
         }
 
@@ -231,7 +237,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Reader : " + jsWithReadLock.get(0).hashCode());
             jsWithReadLock.get(0).jvnInvalidateReader(joi);
-            if(jsWithLock != jsWithReadLock.get(0))
+            if (jsWithLock != jsWithReadLock.get(0))
                 this.updateLockInfo(joi, jsWithReadLock.get(0), Lock.NL);
             jsWithReadLock.remove(0);
         }
@@ -241,7 +247,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // On met à jour l'objet qui possèdait le lock write dans le store
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
         // sans pour l'instant à priori)
-        if(s != null) {
+        if (s != null) {
             JvnObject o = storeById.get(joi);
             o.jvnSetSharedObject(s);
         }
@@ -255,14 +261,15 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * A JVN server terminates
      *
      * @param js : the remote reference of the server
-     * @throws java.rmi.RemoteException, JvnException
+     * @throws java.rmi.RemoteException Remote exception
+     * @throws JvnException             Jvn exception
      **/
     public void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
         // Remove lock infos for this js
         for (int joi : this.storeById.keySet()) {
             List<LockInfo> locks = this.storeLocks.get(joi);
             for (LockInfo lockInfo : locks) {
-                if(lockInfo.getJvnRemoteServer().equals(js)){
+                if (lockInfo.getJvnRemoteServer().equals(js)) {
                     locks.remove(lockInfo);
                 }
             }
