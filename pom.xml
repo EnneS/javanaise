@@ -20,30 +20,36 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
-                <execution>
-                    <id>coord</id>
-                    <configuration>
-                    <mainClass>jvn.Coord</mainClass>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>irc</id>
-                    <configuration>
-                    <mainClass>irc.Irc</mainClass>
-                    </configuration>
-                </execution>
-		        <execution>
-		            <id>ircCount</id>
-		            <configuration>
-		            <mainClass>irc.IrcCount</mainClass>
-		            </configuration>
-		        </execution>
-                <execution>
-		        <id>ircFuzz</id>
-		            <configuration>
-		            <mainClass>irc.IrcFuzz</mainClass>
-		            </configuration>
-		        </execution>
+                    <execution>
+                        <id>coord</id>
+                        <configuration>
+                        <mainClass>jvn.Coord</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>irc</id>
+                        <configuration>
+                        <mainClass>irc.Irc</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircCount</id>
+                        <configuration>
+                        <mainClass>irc.IrcCount</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircFuzz</id>
+                        <configuration>
+                        <mainClass>irc.IrcFuzz</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircFuzzCrash</id>
+                        <configuration>
+                            <mainClass>irc.IrcFuzzCrash</mainClass>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins> 

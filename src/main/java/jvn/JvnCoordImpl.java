@@ -271,15 +271,17 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param js : the remote reference of the server
      * @throws java.rmi.RemoteException, JvnException
      **/
-    public void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
+    public synchronized void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
         // Remove lock infos for this js
         for (int joi : this.storeById.keySet()) {
+            List<LockInfo> locksToRemove = new ArrayList<>();
             List<LockInfo> locks = this.storeLocks.get(joi);
             for (LockInfo lockInfo : locks) {
                 if(lockInfo.getJvnRemoteServer().equals(js)){
-                    locks.remove(lockInfo);
+                    locksToRemove.add(lockInfo);
                 }
             }
+            locks.removeAll(locksToRemove);
         }
     }
 
@@ -291,6 +293,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         try {
             m = JvnRemoteServer.class.getDeclaredMethod(method, int.class);
         } catch (NoSuchMethodException e) {
+            System.out.println("Error 1");
             System.err.println(e.getMessage());
             return null;
         }
@@ -301,9 +304,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             try {
                 o = m.invoke(js, joi);
                 success = true;
-            } catch (IllegalAccessException | InvocationTargetException e)
-            {
-                System.err.println(e.getMessage());
             } catch (Exception e) {
                 System.err.println("JvnServer unreachable");
             }
@@ -314,6 +314,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             try {
                 jvnTerminate(js);
             } catch (JvnException | RemoteException e) {
+                System.out.println("Terminate");
                 System.err.println(e.getMessage());
             }
         }
