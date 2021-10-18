@@ -13,14 +13,11 @@ import java.awt.event.*;
 
 import jvn.*;
 
-import java.io.*;
-
-
 public class Irc {
     public TextArea text;
     public TextField data;
     Frame frame;
-    JvnObject sentence;
+    SentenceItf sentence;
 
 
 
@@ -36,24 +33,11 @@ public class Irc {
             }
         }
 
-        try {    
-            // initialize JVN
-            JvnServerImpl js = JvnServerImpl.jvnGetServer("localhost");
-
+        try {
             // look up the IRC object in the JVN server
             // if not found, create it, and register it in the JVN server
-            JvnObject jo = js.jvnLookupObject("IRC");
-
-            if (jo == null) {
-                jo = js.jvnCreateObject((Serializable) new Sentence());
-                // after creation, I have a write lock on the object
-                jo.jvnUnLock();
-                
-                js.jvnRegisterObject("IRC", jo);
-            }
-            // create the graphical part of the Chat application
-            new Irc(jo);
-
+            SentenceItf proxy = (SentenceItf) JvnObjectProxy.newInstance("IRC", Sentence.class);
+            new Irc(proxy);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -63,10 +47,10 @@ public class Irc {
     /**
      * IRC Constructor
      *
-     * @param jo the JVN object representing the Chat
+     * @param s the JVN object representing the Chat
      **/
-    public Irc(JvnObject jo) {
-        sentence = jo;
+    public Irc(SentenceItf s) {
+        sentence = s;
         frame = new Frame();
         frame.setLayout(new GridLayout(1, 1));
         text = new TextArea(10, 60);
@@ -102,22 +86,13 @@ class readListener implements ActionListener {
      * Management of user events
      **/
     public void actionPerformed(ActionEvent e) {
-        try {
-            // lock the object in read mode
-            irc.sentence.jvnLockRead();
 
             // invoke the method
-            String s = ((Sentence) (irc.sentence.jvnGetSharedObject())).read();
-
-            // unlock the object
-            irc.sentence.jvnUnLock();
+            String s = irc.sentence.read();
 
             // display the read value
             irc.data.setText(s);
             irc.text.append(s + "\n");
-        } catch (JvnException je) {
-            System.out.println("IRC problem : " + je.getMessage());
-        }
     }
 }
 
@@ -135,21 +110,11 @@ class writeListener implements ActionListener {
      * Management of user events
      **/
     public void actionPerformed(ActionEvent e) {
-        try {
-            // get the value to be written from the buffer
-            String s = irc.data.getText();
+        // get the value to be written from the buffer
+        String s = irc.data.getText();
 
-            // lock the object in write mode
-            irc.sentence.jvnLockWrite();
-
-            // invoke the method
-            ((Sentence) (irc.sentence.jvnGetSharedObject())).write(s);
-
-            // unlock the object
-            irc.sentence.jvnUnLock();
-        } catch (JvnException je) {
-            System.out.println("IRC problem  : " + je.getMessage());
-        }
+        // invoke the method
+        irc.sentence.write(s);
     }
 }
 
