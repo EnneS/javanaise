@@ -36,11 +36,8 @@ public class Irc {
         try {
             // look up the IRC object in the JVN server
             // if not found, create it, and register it in the JVN server
-
-            SentenceItf proxy = (SentenceItf) JvnObjectProxy.newInstance("IRC", new Sentence());
-
+            SentenceItf proxy = (SentenceItf) JvnObjectProxy.newInstance("IRC", Sentence.class);
             new Irc(proxy);
-
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());

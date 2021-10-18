@@ -27,8 +27,7 @@ public class IrcCount {
 
             // look up the IRC object in the JVN server
             // if not found, create it, and register it in the JVN server
-            Counter count = new Counter();
-            CounterItf s = (CounterItf) JvnObjectProxy.newInstance("IRC", count);
+            CounterItf s = (CounterItf) JvnObjectProxy.newInstance("IRC", Counter.class);
 
             int c = 0;
             // Count to 100.

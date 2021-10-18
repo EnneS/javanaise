@@ -12,12 +12,12 @@ public class JvnObjectProxy implements InvocationHandler {
 
     private JvnObject jvnObject;
 
-    private JvnObjectProxy(String jon, Serializable s) throws JvnException {
+    private JvnObjectProxy(String jon, Class c) throws JvnException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         JvnObject o = JvnServerImpl.jvnGetServer("localhost").jvnLookupObject(jon);
 
         if(o == null) {
             System.out.println("Création de l'objet");
-            this.jvnObject = JvnServerImpl.jvnGetServer("localhost").jvnCreateObject((Serializable) s);
+            this.jvnObject = JvnServerImpl.jvnGetServer("localhost").jvnCreateObject((Serializable) c.getDeclaredConstructor().newInstance());
             this.jvnObject.jvnUnLock();
 
             JvnServerImpl.jvnGetServer("localhost").jvnRegisterObject(jon, this.jvnObject);
@@ -26,11 +26,11 @@ public class JvnObjectProxy implements InvocationHandler {
         }
     }
 
-    public static Object newInstance(String jon, Serializable s) throws JvnException {
+    public static Object newInstance(String jon, Class c) throws JvnException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         return java.lang.reflect.Proxy.newProxyInstance(
-                s.getClass().getClassLoader(),
-                s.getClass().getInterfaces(),
-                new JvnObjectProxy(jon, s));
+                c.getClassLoader(),
+                c.getInterfaces(),
+                new JvnObjectProxy(jon, c));
     }
 
     @Override

@@ -26,8 +26,7 @@ public class IrcFuzz {
             // initialize JVN
             JvnServerImpl js = JvnServerImpl.jvnGetServer("localhost");
 
-            Counter coun = new Counter();
-            CounterItf counter = (CounterItf) JvnObjectProxy.newInstance("IRC", coun);
+            CounterItf counter = (CounterItf) JvnObjectProxy.newInstance("IRC", Counter.class);
 
             int c = 0;
             // Count to 100.
