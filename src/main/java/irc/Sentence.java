@@ -8,7 +8,9 @@
 
 package irc;
 
-public class Sentence implements java.io.Serializable {
+import jvn.SentenceItf;
+
+public class Sentence implements SentenceItf {
     /**
      *
      */
