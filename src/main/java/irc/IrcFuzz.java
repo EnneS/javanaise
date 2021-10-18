@@ -19,6 +19,9 @@ public class IrcFuzz {
     /**
      * main method create a JVN object nammed IRC for representing the Chat
      * application
+     *
+     * @param argv arguments passed to the program
+     *
      **/
     public static void main(String argv[]) {
         try {
@@ -59,10 +62,11 @@ public class IrcFuzz {
     }
 
     /**
-     * 
-     * @param jo
-     * @param js
-     * @return -1 if error, n>0 otherwise
+     * Read the last value of a Counter object
+     *
+     * @param jo CounterItf
+     * @param js JvnLocalServer
+     * @return -1 if error, n greater thant 0 otherwise
      */
     public static int read(JvnServerImpl js, CounterItf jo) {
         int res = -1;
@@ -79,6 +83,13 @@ public class IrcFuzz {
         return res;
     }
 
+    /**
+     * Increment a counter object
+     *
+     * @param jo CounterItf object
+     * @param js JvnLocalServer
+     * @return 0 if error, n greater than 0 otherwise
+     */
     public static int write(JvnLocalServer js, CounterItf jo) {
         int res = 0;
         try {
