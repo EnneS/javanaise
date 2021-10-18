@@ -23,57 +23,61 @@ public interface JvnObject extends Serializable {
     /**
      * Get a Read lock on the shared object
      *
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public void jvnLockRead() throws jvn.JvnException;
 
     /**
      * Get a Write lock on the object
      *
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public void jvnLockWrite() throws jvn.JvnException;
 
     /**
      * Unlock the object
      *
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public void jvnUnLock() throws jvn.JvnException;
 
     /**
      * Get the object identification
      *
-     * @throws JvnException
+     * @return the object id
+     * @throws JvnException Jvn exception
      **/
     public int jvnGetObjectId() throws jvn.JvnException;
 
     /**
      * Set the object identification
-     * 
-     * @throws JvnException
+     *
+     * @param id the object id
+     * @throws JvnException Jvn exception
      **/
     public void jvnSetObjectId(int id) throws jvn.JvnException;
 
     /**
      * Get the shared object associated to this JvnObject
      *
-     * @throws JvnException
+     * @return the current JVN object state
+     * @throws JvnException Jvn exception
      **/
     public Serializable jvnGetSharedObject() throws jvn.JvnException;
 
     /**
      * 
      * Set the shared object associated to this JvnObject
-     * 
-     * @throws jvn.JvnException
+     *
+     * @param o refence to shared object
+     * @throws jvn.JvnException Jvn exception
      **/
     public void jvnSetSharedObject(Serializable o) throws jvn.JvnException;
 
     /**
      * Invalidate the Read lock of the JVN object
      *
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public void jvnInvalidateReader() throws jvn.JvnException;
 
@@ -81,7 +85,7 @@ public interface JvnObject extends Serializable {
      * Invalidate the Write lock of the JVN object
      *
      * @return the current JVN object state
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public Serializable jvnInvalidateWriter() throws jvn.JvnException;
 
@@ -89,7 +93,7 @@ public interface JvnObject extends Serializable {
      * Reduce the Write lock of the JVN object
      *
      * @return the current JVN object state
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public Serializable jvnInvalidateWriterForReader() throws jvn.JvnException;
 
@@ -97,7 +101,7 @@ public interface JvnObject extends Serializable {
      * Get the JVN object's lock
      * 
      * @return the current JVN object's lock
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public Lock getLock() throws jvn.JvnException;
 
@@ -110,7 +114,8 @@ public interface JvnObject extends Serializable {
 
     /**
      * Set the lock of the object only locally
-     * @param lock
+     *
+     * @param lock the state of the lock
      */
     public void setLock(Lock lock);
 }
