@@ -41,7 +41,7 @@ public class IrcCount {
             }
             int c = 0;
             // Count to 100.
-                        Random r = new Random();
+            Random r = new Random();
 
             while (c < 500) {
                 c = write(js, jo);
