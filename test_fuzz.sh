@@ -7,10 +7,8 @@
  echo "Compilation finie"
  mvn exec:java@coord &
  P0=$!
- sleep 2
  mvn exec:java@ircFuzz &
  P1=$!
- sleep 1
  mvn exec:java@ircFuzz &
  P2=$!
  mvn exec:java@ircFuzz &
