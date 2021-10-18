@@ -7,6 +7,9 @@
 
 package jvn;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -29,6 +32,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
     private HashMap<String, Integer> storeByName = new HashMap<>();
     private HashMap<Integer, JvnObject> storeById = new HashMap<>();
     private HashMap<Integer, List<LockInfo>> storeLocks = new HashMap<>();
+
+    private final int NB_TRIES = 10;
 
     /**
      * Default constructor
@@ -131,7 +136,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         return jsWithReadLock;
     }
 
-    public void updateLockInfo(int joi, JvnRemoteServer js, Lock lock){
+    private void updateLockInfo(int joi, JvnRemoteServer js, Lock lock){
         // Update LockInfo for the server asking for a read lock
         List<LockInfo> locks = storeLocks.get(joi);
         Boolean found = false;
@@ -182,8 +187,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Writer for Reader : " + jsWithLock.hashCode());
-            s = jsWithLock.jvnInvalidateWriterForReader(joi);
-            this.updateLockInfo(joi, jsWithLock, Lock.R);
+
+            s = (Serializable) this.contactJvnServer(jsWithLock, "jvnInvalidateWriterForReader", joi);
+
+            if(s != null)
+                this.updateLockInfo(joi, jsWithLock, Lock.R);
         }
 
         updateLockInfo(joi, js, Lock.R);
@@ -221,18 +229,24 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         if(jsWithLock != null) {
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Writer : " + jsWithLock.hashCode());
+
+            s = (Serializable) this.contactJvnServer(jsWithLock, "jvnInvalidateWriter", joi);
     
-                s = jsWithLock.jvnInvalidateWriter(joi);
-            this.updateLockInfo(joi, jsWithLock, Lock.NL);
+//                s = jsWithLock.jvnInvalidateWriter(joi);
+            if(s != null)
+                this.updateLockInfo(joi, jsWithLock, Lock.NL);
         }
 
         while (!(jsWithReadLock = getJsWithReadLock(joi, js)).isEmpty()) {
             // invalidate readers one by one
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Reader : " + jsWithReadLock.get(0).hashCode());
-            jsWithReadLock.get(0).jvnInvalidateReader(joi);
+
+            this.contactJvnServer(jsWithReadLock.get(0), "jvnInvalidateReader", joi);
+
             if(jsWithLock != jsWithReadLock.get(0))
                 this.updateLockInfo(joi, jsWithReadLock.get(0), Lock.NL);
+
             jsWithReadLock.remove(0);
         }
 
@@ -267,5 +281,43 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
                 }
             }
         }
+    }
+
+    private Object contactJvnServer(JvnRemoteServer js, String method, int joi)
+    {
+        Object o = null;
+        Method m;
+
+        try {
+            m = JvnRemoteServer.class.getDeclaredMethod(method, int.class);
+        } catch (NoSuchMethodException e) {
+            System.err.println(e.getMessage());
+            return null;
+        }
+
+        int tries = 0;
+        boolean success = false;
+        while (tries < NB_TRIES && !success) {
+            try {
+                o = m.invoke(js, joi);
+                success = true;
+            } catch (IllegalAccessException | InvocationTargetException e)
+            {
+                System.err.println(e.getMessage());
+            } catch (Exception e) {
+                System.err.println("JvnServer unreachable");
+            }
+            tries++;
+        }
+
+        if(!success) {
+            try {
+                jvnTerminate(js);
+            } catch (JvnException | RemoteException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+
+        return o;
     }
 }
