@@ -9,10 +9,7 @@ package irc;
 
 import java.util.Random;
 
-import jvn.JvnException;
-import jvn.JvnLocalServer;
-import jvn.JvnObject;
-import jvn.JvnServerImpl;
+import jvn.*;
 
 public class IrcCount {
 
@@ -30,22 +27,14 @@ public class IrcCount {
 
             // look up the IRC object in the JVN server
             // if not found, create it, and register it in the JVN server
-            JvnObject jo = js.jvnLookupObject("IRC");
+            CounterItf s = (CounterItf) JvnObjectProxy.newInstance("IRC", Counter.class);
 
-            if (jo == null) {
-                jo = js.jvnCreateObject(new Counter());
-                // after creation, I have a write lock on the object
-                jo.jvnUnLock();
-
-                js.jvnRegisterObject("IRC", jo);
-            }
             int c = 0;
             // Count to 100.
             Random r = new Random();
 
             while (c < 500) {
-                c = write(js, jo);
-                Thread.sleep(r.nextInt(80));
+                c = write(s, js);
             }
             System.out.print("fini\n");
             while (true) {
@@ -65,23 +54,18 @@ public class IrcCount {
         counter = jo;
     }
 
-    public static int write(JvnLocalServer js, JvnObject jo) {
+    public static int write(CounterItf jo, JvnServerImpl js) {
         int res = 0;
         try {
             // lock the object in read mode
-            jo.jvnLockWrite();
             Random r = new Random();
             // invoke the method
-            ((Counter) jo.jvnGetSharedObject()).plus();
-            res = ((Counter) jo.jvnGetSharedObject()).getCounter();
-            System.out.println("[" + js.hashCode() + "]" + "Writing " + ((Counter) jo.jvnGetSharedObject()).counter);
+            jo.plus();
+            res = jo.getCounter();
+            System.out.println("[" + js.hashCode() + "]" + "Writing " + res);
             // Sleep between 0 and 1000 ms
             Thread.sleep(r.nextInt(80));
-            // unlock the object
-            jo.jvnUnLock();
 
-        } catch (JvnException je) {
-            System.out.println("IRC problem : " + je.getMessage());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
