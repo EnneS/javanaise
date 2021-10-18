@@ -23,12 +23,20 @@ public class Irc {
     JvnObject sentence;
 
 
+
+
     /**
      * main method
      * create a JVN object nammed IRC for representing the Chat application
      **/
     public static void main(String argv[]) {
-        try {
+        for (String arg : argv) {
+            if(arg.equals("-v")){
+                JvnGlobals.debug = true;
+            }
+        }
+
+        try {    
             // initialize JVN
             JvnServerImpl js = JvnServerImpl.jvnGetServer("localhost");
 
@@ -37,7 +45,6 @@ public class Irc {
             JvnObject jo = js.jvnLookupObject("IRC");
 
             if (jo == null) {
-                System.out.println("jo différent null");
                 jo = js.jvnCreateObject((Serializable) new Sentence());
                 // after creation, I have a write lock on the object
                 jo.jvnUnLock();

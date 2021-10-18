@@ -32,6 +32,18 @@
                     <mainClass>irc.Irc</mainClass>
                     </configuration>
                 </execution>
+		        <execution>
+		            <id>ircCount</id>
+		            <configuration>
+		            <mainClass>irc.IrcCount</mainClass>
+		            </configuration>
+		        </execution>
+                <execution>
+		        <id>ircFuzz</id>
+		            <configuration>
+		            <mainClass>irc.IrcFuzz</mainClass>
+		            </configuration>
+		        </execution>
                 </executions>
             </plugin>
         </plugins> 

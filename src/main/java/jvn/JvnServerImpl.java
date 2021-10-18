@@ -54,7 +54,8 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
             }
         }
 
-        System.out.println("Coord reçu - Server Hash : " + this.hashCode());
+        if(JvnGlobals.debug)
+            System.out.println("Coord reçu - Server Hash : " + this.hashCode());
     }
 
     /**
