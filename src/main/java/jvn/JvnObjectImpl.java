@@ -18,7 +18,7 @@ public class JvnObjectImpl implements JvnObject {
     /**
      * Get a Read lock on the shared object
      * 
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public void jvnLockRead() throws jvn.JvnException {
         if (JvnGlobals.debug)
@@ -53,7 +53,7 @@ public class JvnObjectImpl implements JvnObject {
     /**
      * Get a Write lock on the object
      * 
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public void jvnLockWrite() throws jvn.JvnException {
         if (JvnGlobals.debug)
@@ -83,7 +83,7 @@ public class JvnObjectImpl implements JvnObject {
     /**
      * Unlock the object
      * 
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public synchronized void jvnUnLock() throws jvn.JvnException {
         if (JvnGlobals.debug)
@@ -103,7 +103,7 @@ public class JvnObjectImpl implements JvnObject {
     /**
      * Get the object identification
      * 
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public int jvnGetObjectId() throws jvn.JvnException {
         return this.id;
@@ -111,8 +111,9 @@ public class JvnObjectImpl implements JvnObject {
 
     /**
      * Set the object identification
-     * 
-     * @throws JvnException
+     *
+     * @param id the object id
+     * @throws JvnException Jvn exception
      **/
     public void jvnSetObjectId(int id) throws jvn.JvnException {
         this.id = id;
@@ -121,7 +122,7 @@ public class JvnObjectImpl implements JvnObject {
     /**
      * Get the shared object associated to this JvnObject
      * 
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public Serializable jvnGetSharedObject() throws jvn.JvnException {
         return this.o;
@@ -129,8 +130,9 @@ public class JvnObjectImpl implements JvnObject {
 
     /**
      * Set the shared object associated to this JvnObject
-     * 
-     * @throws JvnException
+     *
+     * @param o a reference to the shared object
+     * @throws JvnException Jvn exception
      **/
     public void jvnSetSharedObject(Serializable o) throws jvn.JvnException {
         this.o = o;
@@ -139,7 +141,7 @@ public class JvnObjectImpl implements JvnObject {
     /**
      * Invalidate the Read lock of the JVN object
      * 
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public synchronized void jvnInvalidateReader() throws jvn.JvnException {
         if (JvnGlobals.debug)
@@ -168,7 +170,7 @@ public class JvnObjectImpl implements JvnObject {
                 System.err.println(e.getMessage());
             }
         }
-//        this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
+        // this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
         this.lock = Lock.NL;
 
         if (JvnGlobals.debug)
