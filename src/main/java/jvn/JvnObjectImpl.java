@@ -157,7 +157,7 @@ public class JvnObjectImpl implements JvnObject {
      * Invalidate the Write lock of the JVN object
      * 
      * @return the current JVN object state
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public synchronized Serializable jvnInvalidateWriter() throws jvn.JvnException {
         if (JvnGlobals.debug)
@@ -183,7 +183,7 @@ public class JvnObjectImpl implements JvnObject {
      * Reduce the Write lock of the JVN object
      * 
      * @return the current JVN object state
-     * @throws JvnException
+     * @throws JvnException Jvn exception
      **/
     public synchronized Serializable jvnInvalidateWriterForReader() throws jvn.JvnException {
         if (JvnGlobals.debug)
