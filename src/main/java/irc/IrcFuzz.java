@@ -31,7 +31,7 @@ public class IrcFuzz {
             int c = 0;
             // Count to 100.
             Random r = new Random();
-            while (c < 1000) {
+            while (c < 50) {
                 if (r.nextInt(2) == 1) {
                     c = write(js, counter);
                 } else {

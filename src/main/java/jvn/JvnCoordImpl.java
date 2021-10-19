@@ -7,6 +7,7 @@
 
 package jvn;
 
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
@@ -16,7 +17,6 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.io.Serializable;
 
 public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord {
 
@@ -24,6 +24,10 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      *
      */
     private static final long serialVersionUID = 1L;
+
+    private final String STORE_BY_ID_FILENAME = "storeById.txt";
+    private final String STORE_BY_NAME_FILENAME = "storeByName.txt";
+    private final String PATH_TO_FILE = "src/main/resources/";
 
     private Registry registry;
 
@@ -41,6 +45,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @throws JvnException
      **/
     private JvnCoordImpl() throws Exception {
+        this.load();
         // to be completed
         this.registry = LocateRegistry.createRegistry(9393);
         this.registry.bind("Coordinator", this);
@@ -200,8 +205,14 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
         // sans pour l'instant à priori)
         JvnObject o = storeById.get(joi);
-        if(s != null)
+        if(s != null) {
             o.jvnSetSharedObject(s);
+            try {
+                this.save();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
 
         // Renvoyer l'objet courant
         return o.jvnGetSharedObject();
@@ -258,6 +269,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         if(s != null) {
             JvnObject o = storeById.get(joi);
             o.jvnSetSharedObject(s);
+//            try {
+//                this.save();
+//            } catch (IOException e) {
+//                System.err.println(e.getMessage());
+//            }
         }
 
         // Renvoyer l'objet courant
@@ -325,5 +341,46 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         }
 
         return o;
+    }
+
+    public void load() throws IOException, ClassNotFoundException {
+        FileInputStream file;
+        ObjectInputStream reader;
+
+        file = new FileInputStream(PATH_TO_FILE + STORE_BY_ID_FILENAME);
+        reader = new ObjectInputStream(file);
+
+        this.storeById = (HashMap<Integer, JvnObject>) reader.readObject();
+
+        reader.close();
+        file.close();
+
+        file = new FileInputStream(PATH_TO_FILE + STORE_BY_NAME_FILENAME);
+        reader = new ObjectInputStream(file);
+
+        this.storeByName = (HashMap<String, Integer>) reader.readObject();
+
+        reader.close();
+        file.close();
+    }
+
+    public void save() throws IOException
+    {
+        FileOutputStream file;
+        ObjectOutputStream writer;
+
+        file = new FileOutputStream(PATH_TO_FILE + STORE_BY_ID_FILENAME);
+        writer = new ObjectOutputStream(file);
+        writer.writeObject(this.storeById);
+        writer.flush();
+        writer.close();
+        file.close();
+
+        file = new FileOutputStream(PATH_TO_FILE + STORE_BY_NAME_FILENAME);
+        writer = new ObjectOutputStream(file);
+        writer.writeObject(this.storeByName);
+        writer.flush();
+        writer.close();
+        file.close();
     }
 }
