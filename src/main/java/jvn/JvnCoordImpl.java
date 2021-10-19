@@ -285,8 +285,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         }
     }
 
-    private Object contactJvnServer(JvnRemoteServer js, String method, int joi)
-    {
+    private Object contactJvnServer(JvnRemoteServer js, String method, int joi) {
         Object o = null;
         Method m;
 
@@ -307,6 +306,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             } catch (Exception e) {
                 System.err.println("JvnServer unreachable");
             }
+            if(!success)
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    System.err.println(e.getMessage());
+                }
             tries++;
         }
 
