@@ -18,6 +18,9 @@ public class IrcCount {
     /**
      * main method create a JVN object nammed IRC for representing the Chat
      * application
+     *
+     * @param argv arguments passed to the program
+     *
      **/
     public static void main(String argv[]) {
         try {
@@ -30,9 +33,12 @@ public class IrcCount {
             CounterItf s = (CounterItf) JvnObjectProxy.newInstance("IRC", Counter.class);
 
             int c = 0;
-            // Count to 100.
+            Random r = new Random();
+
+            // Count to 500
             while (c < 500) {
                 c = write(s, js);
+                Thread.sleep(r.nextInt(80));
             }
             System.out.print("fini\n");
             while (true) {
@@ -52,6 +58,13 @@ public class IrcCount {
         counter = jo;
     }
 
+    /**
+     * Increment a counter object
+     *
+     * @param jo CounterItf object
+     * @param js JvnLocalServer
+     * @return 0 if error, n greater than 0 otherwise
+     */
     public static int write(CounterItf jo, JvnServerImpl js) {
         int res = 0;
         try {

@@ -7,13 +7,9 @@
  echo "Compilation finie"
  mvn exec:java@coord &
  P0=$!
- mvn exec:java@ircFuzz &
+ mvn exec:java@ircLockButton &
  P1=$!
- mvn exec:java@ircFuzz &
+ mvn exec:java@ircLockButton &
  P2=$!
- mvn exec:java@ircFuzz &
- P3=$!
- mvn exec:java@ircFuzz &
- P4=$!
- wait $P0 $P1 $P2 $P3 $P4
+ wait $P0 $P1 $P2
 )

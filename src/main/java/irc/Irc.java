@@ -10,7 +10,6 @@ package irc;
 import java.awt.*;
 import java.awt.event.*;
 
-
 import jvn.*;
 
 public class Irc {
@@ -19,16 +18,15 @@ public class Irc {
     Frame frame;
     SentenceItf sentence;
 
-
-
-
     /**
-     * main method
-     * create a JVN object nammed IRC for representing the Chat application
+     * main method create a JVN object nammed IRC for representing the Chat
+     * application
+     * 
+     * @param argv arguments passed to the program
      **/
     public static void main(String argv[]) {
         for (String arg : argv) {
-            if(arg.equals("-v")){
+            if (arg.equals("-v")) {
                 JvnGlobals.debug = true;
             }
         }
@@ -71,7 +69,6 @@ public class Irc {
     }
 }
 
-
 /**
  * Internal class to manage user events (read) on the CHAT application
  **/
@@ -87,12 +84,12 @@ class readListener implements ActionListener {
      **/
     public void actionPerformed(ActionEvent e) {
 
-            // invoke the method
-            String s = irc.sentence.read();
+        // invoke the method
+        String s = irc.sentence.read();
 
-            // display the read value
-            irc.data.setText(s);
-            irc.text.append(s + "\n");
+        // display the read value
+        irc.data.setText(s);
+        irc.text.append(s + "\n");
     }
 }
 
@@ -117,6 +114,3 @@ class writeListener implements ActionListener {
         irc.sentence.write(s);
     }
 }
-
-
-

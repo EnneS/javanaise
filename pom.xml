@@ -16,34 +16,66 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                        <directory>src/main/resources</directory>
+                        <includes>
+                            <include>**/*.txt</include>
+                            <include>**/*.log</include>
+                        </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.1</version>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
-                <execution>
-                    <id>coord</id>
-                    <configuration>
-                    <mainClass>jvn.Coord</mainClass>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>irc</id>
-                    <configuration>
-                    <mainClass>irc.Irc</mainClass>
-                    </configuration>
-                </execution>
-		        <execution>
-		            <id>ircCount</id>
-		            <configuration>
-		            <mainClass>irc.IrcCount</mainClass>
-		            </configuration>
-		        </execution>
-                <execution>
-		        <id>ircFuzz</id>
-		            <configuration>
-		            <mainClass>irc.IrcFuzz</mainClass>
-		            </configuration>
-		        </execution>
+                    <execution>
+                        <id>coord</id>
+                        <configuration>
+                        <mainClass>jvn.Coord</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>irc</id>
+                        <configuration>
+                        <mainClass>irc.Irc</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircCount</id>
+                        <configuration>
+                        <mainClass>irc.IrcCount</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircFuzz</id>
+                        <configuration>
+                        <mainClass>irc.IrcFuzz</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircFuzzCrash</id>
+                        <configuration>
+                            <mainClass>irc.IrcFuzzCrash</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ircLockButton</id>
+                        <configuration>
+                            <mainClass>irc.IrcLockButton</mainClass>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins> 
