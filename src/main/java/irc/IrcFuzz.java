@@ -20,10 +20,14 @@ public class IrcFuzz {
      * main method create a JVN object nammed IRC for representing the Chat
      * application
      *
-     * @param argv arguments passed to the program
+     * @param args arguments passed to the program
      *
      **/
-    public static void main(String argv[]) {
+    public static void main(String args[]) {
+        int n = 50;
+        if (args.length == 1) {
+            n = Integer.parseInt(args[0]);
+        }
         try {
             Thread.sleep(1000);
             // initialize JVN
@@ -32,9 +36,9 @@ public class IrcFuzz {
             CounterItf counter = (CounterItf) JvnObjectProxy.newInstance("IRC", Counter.class);
 
             int c = 0;
-            // Count to 100.
+            // Count to n
             Random r = new Random();
-            while (c < 50) {
+            while (c < n) {
                 if (r.nextInt(2) == 1) {
                     c = write(js, counter);
                 } else {
