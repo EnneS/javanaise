@@ -21,6 +21,8 @@ public class IrcFuzzCrash {
     /**
      * main method create a JVN object nammed IRC for representing the Chat
      * application
+     *
+     * @param argv params to be passed to program
      **/
     public static void main(String argv[]) {
         try {
@@ -76,9 +78,9 @@ public class IrcFuzzCrash {
 
     /**
      * 
-     * @param jo
-     * @param js
-     * @return -1 if error, n>0 otherwise
+     * @param jo jvn object
+     * @param js jvn server
+     * @return -1 if error, n greater than 0 otherwise
      */
     public static int read(JvnObject jo, JvnServerImpl js) {
         int res = -1;

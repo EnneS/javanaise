@@ -20,16 +20,15 @@ public class IrcLockButton {
     Frame frame;
     JvnObject sentence;
 
-
-
-
     /**
-     * main method
-     * create a JVN object nammed IRC for representing the Chat application
+     * main method create a JVN object nammed IRC for representing the Chat
+     * application
+     *
+     * @param argv params to be passed to program.
      **/
     public static void main(String argv[]) {
         for (String arg : argv) {
-            if(arg.equals("-v")){
+            if (arg.equals("-v")) {
                 JvnGlobals.debug = true;
             }
         }
