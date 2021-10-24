@@ -170,7 +170,6 @@ public class JvnObjectImpl implements JvnObject {
                 System.err.println(e.getMessage());
             }
         }
-        // this.lock = this.lock == Lock.W ? Lock.RC : Lock.R;
         this.lock = Lock.NL;
 
         if (JvnGlobals.debug)

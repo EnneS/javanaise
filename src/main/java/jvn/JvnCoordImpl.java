@@ -7,13 +7,15 @@
 
 package jvn;
 
+import java.io.*;
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.io.Serializable;
 
 public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord {
 
@@ -21,6 +23,10 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      *
      */
     private static final long serialVersionUID = 1L;
+
+    private final String STORE_BY_ID_FILENAME = "storeById.txt";
+    private final String STORE_BY_NAME_FILENAME = "storeByName.txt";
+    private final String PATH_TO_FILE = "src/main/resources/";
 
     private Registry registry;
 
@@ -30,12 +36,15 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
     private HashMap<Integer, JvnObject> storeById = new HashMap<>();
     private HashMap<Integer, List<LockInfo>> storeLocks = new HashMap<>();
 
+    private final int NB_TRIES = 10;
+
     /**
      * Default constructor
      *
      * @throws JvnException
      **/
     private JvnCoordImpl() throws Exception {
+        this.load();
         // to be completed
         this.registry = LocateRegistry.createRegistry(9393);
         this.registry.bind("Coordinator", this);
@@ -187,8 +196,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         while ((jsWithLock = getJsWithWriteLock(joi)) != null) {
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Writer for Reader : " + jsWithLock.hashCode());
-            s = jsWithLock.jvnInvalidateWriterForReader(joi);
-            this.updateLockInfo(joi, jsWithLock, Lock.R);
+
+            s = (Serializable) this.contactJvnServer(jsWithLock, "jvnInvalidateWriterForReader", joi);
+
+            if (s != null)
+                this.updateLockInfo(joi, jsWithLock, Lock.R);
         }
 
         updateLockInfo(joi, js, Lock.R);
@@ -197,8 +209,14 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         // (Il faut aussi le faire dans le storeByName mais pas eu le temps : marche
         // sans pour l'instant à priori)
         JvnObject o = storeById.get(joi);
-        if (s != null)
+        if (s != null) {
             o.jvnSetSharedObject(s);
+            try {
+                this.save();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
 
         // Renvoyer l'objet courant
         return o.jvnGetSharedObject();
@@ -228,17 +246,22 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Writer : " + jsWithLock.hashCode());
 
-            s = jsWithLock.jvnInvalidateWriter(joi);
-            this.updateLockInfo(joi, jsWithLock, Lock.NL);
+            s = (Serializable) this.contactJvnServer(jsWithLock, "jvnInvalidateWriter", joi);
+
+            if (s != null)
+                this.updateLockInfo(joi, jsWithLock, Lock.NL);
         }
 
         while (!(jsWithReadLock = getJsWithReadLock(joi, js)).isEmpty()) {
             // invalidate readers one by one
             if (JvnGlobals.debug)
                 System.out.println("Invalidate Reader : " + jsWithReadLock.get(0).hashCode());
-            jsWithReadLock.get(0).jvnInvalidateReader(joi);
+
+            this.contactJvnServer(jsWithReadLock.get(0), "jvnInvalidateReader", joi);
+
             if (jsWithLock != jsWithReadLock.get(0))
                 this.updateLockInfo(joi, jsWithReadLock.get(0), Lock.NL);
+
             jsWithReadLock.remove(0);
         }
 
@@ -250,6 +273,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         if (s != null) {
             JvnObject o = storeById.get(joi);
             o.jvnSetSharedObject(s);
+            // try {
+            // this.save();
+            // } catch (IOException e) {
+            // System.err.println(e.getMessage());
+            // }
         }
 
         // Renvoyer l'objet courant
@@ -264,15 +292,128 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @throws java.rmi.RemoteException Remote exception
      * @throws JvnException             Jvn exception
      **/
-    public void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
+    public synchronized void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
         // Remove lock infos for this js
         for (int joi : this.storeById.keySet()) {
+            List<LockInfo> locksToRemove = new ArrayList<>();
             List<LockInfo> locks = this.storeLocks.get(joi);
             for (LockInfo lockInfo : locks) {
                 if (lockInfo.getJvnRemoteServer().equals(js)) {
-                    locks.remove(lockInfo);
+                    locksToRemove.add(lockInfo);
                 }
             }
+            locks.removeAll(locksToRemove);
         }
+    }
+
+    private Object contactJvnServer(JvnRemoteServer js, String method, int joi) {
+        Object o = null;
+        Method m;
+
+        try {
+            m = JvnRemoteServer.class.getDeclaredMethod(method, int.class);
+        } catch (NoSuchMethodException e) {
+            System.out.println("Error 1");
+            System.err.println(e.getMessage());
+            return null;
+        }
+
+        int tries = 0;
+        boolean success = false;
+        while (tries < NB_TRIES && !success) {
+            try {
+                o = m.invoke(js, joi);
+                success = true;
+            } catch (Exception e) {
+                System.err.println("JvnServer unreachable");
+            }
+            if (!success)
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    System.err.println(e.getMessage());
+                }
+            tries++;
+        }
+
+        if (!success) {
+            try {
+                jvnTerminate(js);
+            } catch (JvnException | RemoteException e) {
+                System.out.println("Terminate");
+                System.err.println(e.getMessage());
+            }
+        }
+
+        return o;
+    }
+
+    public void load() throws IOException, ClassNotFoundException {
+        FileInputStream file;
+        ObjectInputStream reader;
+
+        if (!this.createIfNotPresent(PATH_TO_FILE + STORE_BY_ID_FILENAME)) {
+            file = new FileInputStream(PATH_TO_FILE + STORE_BY_ID_FILENAME);
+
+            try {
+                reader = new ObjectInputStream(file);
+                this.storeById = (HashMap<Integer, JvnObject>) reader.readObject();
+                reader.close();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+            file.close();
+        }
+        if (this.storeById == null)
+            this.storeById = new HashMap<>();
+
+        if (!this.createIfNotPresent(PATH_TO_FILE + STORE_BY_NAME_FILENAME)) {
+            file = new FileInputStream(PATH_TO_FILE + STORE_BY_NAME_FILENAME);
+
+            try {
+                reader = new ObjectInputStream(file);
+                this.storeByName = (HashMap<String, Integer>) reader.readObject();
+                reader.close();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+            file.close();
+        }
+        if (this.storeByName == null)
+            this.storeByName = new HashMap<>();
+
+        this.lastId = 0;
+        for (Integer key : this.storeById.keySet()) {
+            if (this.lastId < key)
+                this.lastId = key;
+        }
+    }
+
+    public boolean createIfNotPresent(String path) throws IOException {
+        File file = new File(path);
+        boolean newFile = file.createNewFile();
+        file.setWritable(true);
+        file.setReadable(true);
+        return newFile;
+
+    }
+
+    public void save() throws IOException {
+        FileOutputStream file;
+        ObjectOutputStream writer;
+
+        file = new FileOutputStream(PATH_TO_FILE + STORE_BY_ID_FILENAME);
+        writer = new ObjectOutputStream(file);
+        writer.writeObject(this.storeById);
+        writer.flush();
+        writer.close();
+        file.close();
+
+        file = new FileOutputStream(PATH_TO_FILE + STORE_BY_NAME_FILENAME);
+        writer = new ObjectOutputStream(file);
+        writer.writeObject(this.storeByName);
+        writer.flush();
+        writer.close();
+        file.close();
     }
 }
