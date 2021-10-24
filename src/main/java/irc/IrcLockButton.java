@@ -93,7 +93,6 @@ public class IrcLockButton {
     }
 }
 
-
 /**
  * Internal class to manage user events (read) on the CHAT application
  **/
@@ -110,17 +109,17 @@ class readListenerLockButton implements ActionListener {
      * Management of user events
      **/
     public void actionPerformed(ActionEvent e) {
-            String s = "";
+        String s = "";
 
-            try {
-                s = ((SentenceItf) this.o.jvnGetSharedObject()).read();
-            } catch (JvnException ex) {
-                ex.printStackTrace();
-            }
+        try {
+            s = ((SentenceItf) this.o.jvnGetSharedObject()).read();
+        } catch (JvnException ex) {
+            ex.printStackTrace();
+        }
 
-            // display the read value
-            irc.data.setText(s);
-            irc.text.append(s + "\n");
+        // display the read value
+        irc.data.setText(s);
+        irc.text.append(s + "\n");
     }
 }
 
@@ -169,7 +168,7 @@ class readListenerToggleButton implements ActionListener {
      **/
     public void actionPerformed(ActionEvent e) {
 
-        if(((JToggleButton) e.getSource()).isSelected()) {
+        if (((JToggleButton) e.getSource()).isSelected()) {
             try {
                 this.o.jvnLockRead();
             } catch (JvnException ex) {
@@ -202,7 +201,7 @@ class writeListenerToggleButton implements ActionListener {
      **/
     public void actionPerformed(ActionEvent e) {
 
-        if(((JToggleButton) e.getSource()).isSelected()) {
+        if (((JToggleButton) e.getSource()).isSelected()) {
             try {
                 this.o.jvnLockWrite();
             } catch (JvnException ex) {
@@ -218,6 +217,3 @@ class writeListenerToggleButton implements ActionListener {
 
     }
 }
-
-
-

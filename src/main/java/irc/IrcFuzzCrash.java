@@ -48,7 +48,7 @@ public class IrcFuzzCrash {
                 int next = r.nextInt(100);
                 if (next < 49) {
                     c = write(js, jo);
-                } else if(next < 99) {
+                } else if (next < 99) {
                     read(jo, js);
                 } else {
                     writeCrash(js, jo);
@@ -133,7 +133,7 @@ public class IrcFuzzCrash {
             jo.jvnLockWrite();
 
             System.out.println("[" + js.hashCode() + "]" + "Will crash");
-            int crash = 12/0;
+            int crash = 12 / 0;
 
             jo.jvnUnLock();
 
