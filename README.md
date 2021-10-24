@@ -1,70 +1,35 @@
-# javanaise
-## Ce qui a été fait :
-- Javanaise v1
-- Javanaise v2
-- Persistence des objets du coordinateur
-- Gestion de crash des serveurs
- - Stress Tests (Ecriture & Ecriture+Lecture aléatoire)
-
-## Compilation des sources
-```
-mvn install
-```
-
-## Lancement du coordinateur
-```
-mvn exec:java@coord
-```
-
-## Lancement d'un client IRC
-```
-mvn exec:java@irc
-```
-
-## Lancement des stress tests (avoir le coordinateur de lancé avant)
-### 4 clients qui comptent jusqu'à 500 ensemble (accès en écriture seulement)
-```
-mvn exec:java@ircCount
-```
-
-### 4 clients qui comptent jusqu'à 500 ensemble (accès en écriture et lecture aléatoire)
-```
-mvn exec:java@ircFuzz
-```
-
-
-* Javanaise
+# Javanaise
 Borne Jonathan, Surville Cleo, Soulier Nathan.
 
-** Ce qui a été fait
+## Ce qui a été fait
 
 - Javanaise v1
 - Javanaise v2
-- Persistence des objets du coordinateur
-- Gestion de crash des serveurs
-- Stress Tests (Ecriture & Ecriture+Lecture aléatoire)
-- Test locks
+- Data persistence (with filesystem)
+- Server crash management
+- Stress Tests (Write & Read+Write of 4 clients simultaneously and randomly)
+- Test locks (IRC GUI with "Unlock" button)
 
-* Install
+## Install
 
 - Generate javadoc with `mvn javadoc:javadoc`
 
 The result is accessible in `target/site/apidocs/index.html`
 
-- Generate sources with `mvn install`.
+- Build with `mvn install`.
 - Run count test with `./test_count.sh` (`ctrl-c` to kill).
 - Run fuzzing test with `./test_fuzz.sh`  (`ctrl-c` to kill). 
 - Run client crash test with `./test_crash` (`ctrl-c` to kill).
 - Run manual lock test with `./test_lockButton.sh` (`ctrl-c` to kill).
 - Run persistance test with `./test_fuzz.sh` + `ctrl-c` +  `./test_fuzz2.sh`
 
-*** test_count.sh
+## Tests
+### test_count.sh
 
 This test runs a coordinator and 4 clients collaborating to increment a shared counter object.
 We simulate network latency by adding random thread.sleep() between writes.
 
-**** Execution trace
-
+#### Execution trace
 ```
 Création de l'objet
 [-54823616]Writing 1
@@ -98,7 +63,7 @@ In the preceding trace we see the four clients
 writing increasing values to the counter until 500 is reached.
 
 
-*** test_fuzz.sh
+### test_fuzz.sh
 
 This test runs a coordinator and 4 clients collaborating to increment a shared counter object.
 The clients randomly read and write the shared object.
@@ -106,7 +71,7 @@ We simulate network latency by adding random sleep between each write.
 
 The goal is to verify concurent access doesn't result in interlock and coherency is preserved.
 
-execution trace:
+#### Execution trace:
 ```
 Création de l'objet
 [202963983]Writing 1
@@ -132,16 +97,16 @@ fini
 [866067996]Writing 53
 fini
 ...
-
+```
 In the preceding trace we see the four clients
 writing/reading increasing values to the counter until 50 is reached.
 
-*** test_fuzz2.sh
+### test_fuzz2.sh
 
 This test should be launched after `test_fuzz.sh`.
 The clients will use coordinator persistance to resume counting from last value (50).
 
-execution trace:
+#### Execution trace:
 ```
 [1385790371]Reading 51
 [-675829915]Reading 51
@@ -160,11 +125,12 @@ execution trace:
 [-593730288]Writing 56
 ```
 
-*** test_crash.sh
+### test_crash.sh
 
 The test is similar to test_fuzz except the clients
 have 1/100 chance to crash.
 
+#### Execution trace:
 ```
 [500385740]Writing 5
 [500385740]Reading 5
