@@ -127,24 +127,16 @@ public class IrcFuzzCrash {
     public static int writeCrash(JvnLocalServer js, JvnObject jo) {
         int res = 0;
         try {
-            // lock the object in read mode
+
             jo.jvnLockWrite();
-            Random r = new Random();
-            // invoke the method
-            ((Counter) jo.jvnGetSharedObject()).plus();
-            res = ((Counter) jo.jvnGetSharedObject()).getCounter();
-            System.out.println("[" + js.hashCode() + "]" + "Writing " + res + " but will crash");
-            // Sleep between 0 and 100 ms
-            Thread.sleep(r.nextInt(100));
-            // unlock the object
+
+            System.out.println("[" + js.hashCode() + "]" + "Will crash");
             int crash = 12/0;
 
             jo.jvnUnLock();
 
         } catch (JvnException je) {
             System.out.println("IRC problem : " + je.getMessage());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
         return res;
     }

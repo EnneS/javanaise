@@ -8,7 +8,6 @@
 package jvn;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -242,8 +241,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
                 System.out.println("Invalidate Writer : " + jsWithLock.hashCode());
 
             s = (Serializable) this.contactJvnServer(jsWithLock, "jvnInvalidateWriter", joi);
-    
-//                s = jsWithLock.jvnInvalidateWriter(joi);
+
             if(s != null)
                 this.updateLockInfo(joi, jsWithLock, Lock.NL);
         }
@@ -347,21 +345,50 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         FileInputStream file;
         ObjectInputStream reader;
 
-        file = new FileInputStream(PATH_TO_FILE + STORE_BY_ID_FILENAME);
-        reader = new ObjectInputStream(file);
+        if(!this.createIfNotPresent(PATH_TO_FILE + STORE_BY_ID_FILENAME)) {
+            file = new FileInputStream(PATH_TO_FILE + STORE_BY_ID_FILENAME);
 
-        this.storeById = (HashMap<Integer, JvnObject>) reader.readObject();
+            try {
+                reader = new ObjectInputStream(file);
+                this.storeById = (HashMap<Integer, JvnObject>) reader.readObject();
+                reader.close();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+            file.close();
+        }
+        if(this.storeById == null)
+            this.storeById = new HashMap<>();
 
-        reader.close();
-        file.close();
+        if(!this.createIfNotPresent(PATH_TO_FILE + STORE_BY_NAME_FILENAME)) {
+            file = new FileInputStream(PATH_TO_FILE + STORE_BY_NAME_FILENAME);
 
-        file = new FileInputStream(PATH_TO_FILE + STORE_BY_NAME_FILENAME);
-        reader = new ObjectInputStream(file);
+            try {
+                reader = new ObjectInputStream(file);
+                this.storeByName = (HashMap<String, Integer>) reader.readObject();
+                reader.close();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+            file.close();
+        }
+        if(this.storeByName == null)
+            this.storeByName = new HashMap<>();
 
-        this.storeByName = (HashMap<String, Integer>) reader.readObject();
+        this.lastId = 0;
+        for(Integer key : this.storeById.keySet()) {
+            if(this.lastId < key)
+                this.lastId = key;
+        }
+    }
 
-        reader.close();
-        file.close();
+    public boolean createIfNotPresent(String path) throws IOException {
+        File file = new File(path);
+        boolean newFile = file.createNewFile();
+        file.setWritable(true);
+        file.setReadable(true);
+        return newFile;
+
     }
 
     public void save() throws IOException

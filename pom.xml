@@ -50,6 +50,12 @@
                             <mainClass>irc.IrcFuzzCrash</mainClass>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>ircLockButton</id>
+                        <configuration>
+                            <mainClass>irc.IrcLockButton</mainClass>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins> 
