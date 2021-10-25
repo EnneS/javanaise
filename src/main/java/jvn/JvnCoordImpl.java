@@ -75,7 +75,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @throws java.rmi.RemoteException Remote exception
      * @throws JvnException             Jvn exception
      **/
-    public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
+    public synchronized void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
             throws java.rmi.RemoteException, jvn.JvnException {
         // Add the JvnObject to the store if it doesn't already exist
         if (storeByName.get(jon) == null) {
@@ -101,7 +101,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @throws java.rmi.RemoteException Remote exception
      * @throws JvnException             Jvn exception
      **/
-    public JvnObject jvnLookupObject(String jon, JvnRemoteServer js) throws java.rmi.RemoteException, jvn.JvnException {
+    public synchronized JvnObject jvnLookupObject(String jon, JvnRemoteServer js) throws java.rmi.RemoteException, jvn.JvnException {
         JvnObject jo = storeById.get(storeByName.get(jon));
 
         if (jo != null) {
