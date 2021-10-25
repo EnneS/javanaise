@@ -17,7 +17,6 @@ public class JvnObjectProxy implements InvocationHandler {
 
         if(o == null) {
             try {
-                System.out.println("Création de l'objet");
                 this.jvnObject = JvnServerImpl.jvnGetServer("localhost").jvnCreateObject((Serializable) c.getDeclaredConstructor().newInstance());
                 this.jvnObject.jvnUnLock();
                 JvnServerImpl.jvnGetServer("localhost").jvnRegisterObject(jon, this.jvnObject);

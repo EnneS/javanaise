@@ -59,6 +59,12 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>ircCount2</id>
+                        <configuration>
+                        <mainClass>irc.IrcCount2</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>ircFuzz</id>
                         <configuration>
                         <mainClass>irc.IrcFuzz</mainClass>

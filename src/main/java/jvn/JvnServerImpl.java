@@ -116,6 +116,8 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
         // Attempt to register the object coordinator side until we get a response.
         while (!response) {
             try {
+                int id = this.coord.jvnGetObjectId();
+                jo.jvnSetObjectId(id);
                 this.coord.jvnRegisterObject(jon, jo, this);
                 this.storeByName.put(jon, jo);
                 this.storeById.put(jo.jvnGetObjectId(), jo);
