@@ -1,7 +1,7 @@
 # Javanaise
 Borne Jonathan, Surville Cleo, Soulier Nathan.
 
-## Ce qui a été fait
+## Status
 
 - Javanaise v1
 - Javanaise v2
@@ -16,10 +16,12 @@ Borne Jonathan, Surville Cleo, Soulier Nathan.
 
 The result is accessible in `target/site/apidocs/index.html`
 
-- Build with `mvn install`.
+- Build with `mvn compile`.
+- Clean with `mvn clean`.
 - Run count test with `./test_count.sh` (`ctrl-c` to kill).
 - Run fuzzing test with `./test_fuzz.sh`  (`ctrl-c` to kill). 
-- Run client crash test with `./test_crash` (`ctrl-c` to kill).
+- Run client crash test with `./test_crash.sh` (`ctrl-c` to kill).
+- Run irc graphical client test with `./launch.sh` (`ctrl-c` to kill).
 - Run manual lock test with `./test_lockButton.sh` (`ctrl-c` to kill).
 - Run persistance test with `./test_fuzz.sh` + `ctrl-c` +  `./test_fuzz2.sh`
 
@@ -169,3 +171,15 @@ In the preceding trace we see a client crash and another client waiting for the 
 The coordinator tries to reach the client for the lock 10 times.
 After timeout the client is considered crashed (crash-failure model) and
 the remaining clients continue their counting.
+
+### test_lockButton.sh
+
+The goal of this test is to validate the locking mechanisms of javanaise.
+This test launches one coordinator and 2 irc clients.
+We added two toggle buttons (readLock, writeLock) to the original irc interface.
+
+To make a read, click on readLockButton to request a readLock,
+then clic on read button, then click on readLockButton again to release the lock.
+
+To make a read, click on writeLockButton to request a writeLock,
+then clic on write button, then click on writeLockButton again to release the lock.
