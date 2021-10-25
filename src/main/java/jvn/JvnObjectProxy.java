@@ -16,11 +16,15 @@ public class JvnObjectProxy implements InvocationHandler {
         JvnObject o = JvnServerImpl.jvnGetServer("localhost").jvnLookupObject(jon);
 
         if(o == null) {
-            System.out.println("Création de l'objet");
-            this.jvnObject = JvnServerImpl.jvnGetServer("localhost").jvnCreateObject((Serializable) c.getDeclaredConstructor().newInstance());
-            this.jvnObject.jvnUnLock();
+            try {
+                System.out.println("Création de l'objet");
+                this.jvnObject = JvnServerImpl.jvnGetServer("localhost").jvnCreateObject((Serializable) c.getDeclaredConstructor().newInstance());
+                this.jvnObject.jvnUnLock();
+                JvnServerImpl.jvnGetServer("localhost").jvnRegisterObject(jon, this.jvnObject);
+            } catch (JvnException e) {
+                this.jvnObject = JvnServerImpl.jvnGetServer("localhost").jvnLookupObject(jon);
+            }
 
-            JvnServerImpl.jvnGetServer("localhost").jvnRegisterObject(jon, this.jvnObject);
         } else {
             this.jvnObject = o;
         }
