@@ -79,7 +79,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             throws java.rmi.RemoteException, jvn.JvnException {
         // Add the JvnObject to the store if it doesn't already exist
         if (storeByName.get(jon) == null) {
-            jo.jvnSetObjectId(this.jvnGetObjectId());
             storeByName.put(jon, jo.jvnGetObjectId());
             storeById.put(jo.jvnGetObjectId(), jo);
 
@@ -87,7 +86,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             storeLocks.put(jo.jvnGetObjectId(), locks);
 
             // Add the lock info to the list
-            locks.add(new LockInfo(js, jo.getLock()));
+            locks.add(new LockInfo(js, Lock.W));
         } else {
             throw new jvn.JvnException("Object " + jon + " is already registered.");
         }
@@ -119,13 +118,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         if (locks != null) {
             for (LockInfo lockInfo : locks) {
 
-                if (lockInfo.getLock() == Lock.W || lockInfo.getLock() == Lock.WC) {
+                if (lockInfo.getLock() == Lock.W) {
                     jsWithLock = lockInfo.getJvnRemoteServer();
                     break;
                 }
             }
         }
-
         return jsWithLock;
     }
 
@@ -149,17 +147,16 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         List<LockInfo> locks = storeLocks.get(joi);
         Boolean found = false;
         if (locks != null) {
-            for (LockInfo lockInfo : locks) {
-                if (lockInfo.getJvnRemoteServer().equals(js)) {
-                    found = true;
-                    lockInfo.setLock(lock);
-                }
+            int i = 0;
+            while(i < locks.size() && !locks.get(i).getJvnRemoteServer().equals(js)){
+                i++;
+            }
+            if(i == locks.size()){
+                locks.add(new LockInfo(js, lock));
+            } else {
+                locks.get(i).setLock(lock);
             }
 
-            // Si pas de lockInfo dans la liste on en créé un
-            if (!found) {
-                locks.add(new LockInfo(js, lock));
-            }
         } else {
             // if lock list was null for joi create a new list containing the
             // newly acquired readlock
@@ -248,8 +245,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
             s = (Serializable) this.contactJvnServer(jsWithLock, "jvnInvalidateWriter", joi);
 
-            if (s != null)
+            if (s != null){
                 this.updateLockInfo(joi, jsWithLock, Lock.NL);
+            }
         }
 
         while (!(jsWithReadLock = getJsWithReadLock(joi, js)).isEmpty()) {
@@ -273,11 +271,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         if (s != null) {
             JvnObject o = storeById.get(joi);
             o.jvnSetSharedObject(s);
-            // try {
-            // this.save();
-            // } catch (IOException e) {
-            // System.err.println(e.getMessage());
-            // }
+            try {
+                this.save();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
         }
 
         // Renvoyer l'objet courant

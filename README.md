@@ -23,6 +23,7 @@ The result is accessible in `target/site/apidocs/index.html`
 - Run client crash test with `./test_crash.sh` (`ctrl-c` to kill).
 - Run irc graphical client test with `./launch.sh` (`ctrl-c` to kill).
 - Run manual lock test with `./test_lockButton.sh` (`ctrl-c` to kill).
+- Run test with two JVN Objects `./test_count2.sh` (`ctrl-c` to kill).
 - Run persistance test with `./test_fuzz.sh` + `ctrl-c` +  `./test_fuzz2.sh`
 
 ## Tests
